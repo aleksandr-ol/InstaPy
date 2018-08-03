@@ -3,3 +3,5 @@ clarifai
 pyvirtualdisplay
 emoji
 GitPython
+schedule
+python-dotenv
