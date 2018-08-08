@@ -3,7 +3,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def os_env():
+def get_os_env():
     from sys import platform
     if platform == "linux" or platform == "linux2":
         return 'linux'
@@ -16,18 +16,19 @@ def os_env():
 class Settings:
     log_location = os.path.join(BASE_DIR, 'logs')
     database_location = os.path.join(BASE_DIR, 'db', 'instapy.db')
+    os_env = get_os_env()
 
     chromedriver_location = os.path.join(BASE_DIR, 'assets', 'chromedriver')
 
-    if os_env() == 'osx':
+    if os_env == 'osx':
         chromedriver_location = os.path.join(
             BASE_DIR, 'assets', 'chromedriver_osx')
 
-    if os_env() == 'linux':
+    if os_env == 'linux':
         chromedriver_location = os.path.join(
             BASE_DIR, 'assets', 'chromedriver_linux')
 
-    if os_env() == 'windows':
+    if os_env == 'windows':
         chromedriver_location = os.path.join(
             BASE_DIR, 'assets', 'chromedriver_windows')
 
