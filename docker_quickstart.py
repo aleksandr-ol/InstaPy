@@ -63,11 +63,11 @@ def job(run=0):
         # bot.clarifai_check_img_for(['landscape'], comment=True, comments=['Awesome shot!😄', 'Nice shot!😄', 'Great!😄', 'Nice one', 'Awesome', 'Cool!'])
         # bot.like_by_locations(['31499759/rome-italy'], amount=10, skip_top_posts=False)
         # bot.follow_by_tags(env.like_by_tags, amount=10)
-        bot.like_by_feed(amount=10, randomize=True, unfollow=True, interact=True)
+        bot.like_by_feed(amount=20, randomize=True, unfollow=True, interact=True)
 
         bot.clarifai_check_img_for(env.clarifai_check_img_for)
         bot.like_by_tags(
-            random.choice(env.like_by_tags), amount=50, interact=True, media="Photo"
+            [random.choice(env.like_by_tags)], amount=30, interact=True, media="Photo"
         )
         bot.unfollow_users(
             amount=50,
@@ -83,7 +83,7 @@ def job(run=0):
 
 
 # job()
-schedule.every().hour.do(job).run()
+schedule.every(2).hours.do(job).run()
 
 while True:
     schedule.run_pending()
