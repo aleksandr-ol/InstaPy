@@ -49,41 +49,64 @@ def job(run=0):
         #     # min_following=500,
         # )
         # bot.set_delimit_liking(enabled=True, max=None, min=10)
-        bot.set_use_clarifai(enabled=True, api_key=env.clarifai_apikey)
+        # bot.set_use_clarifai(enabled=True, api_key=env.clarifai_apikey)
+        # bot.set_dont_include(friend_list)
+        # bot.set_dont_like(dont_like)
+        # bot.set_ignore_if_contains(ignore_words)
+        # # bot.set_dont_unfollow_active_users(enabled=True, posts=3)
+        # bot.set_user_interact(
+        #     amount=random.randint(1, 3), randomize=True, percentage=20, media="Photo"
+        # )
+        # bot.set_do_follow(enabled=True, percentage=5, times=1)
+
+        # # bot.set_delimit_commenting(enabled=True, max=32, min=3)
+        # # bot.set_smart_hashtags(['portraitpage', 'portraitgames', 'agameof10k', 'a], limit=3, sort='top', log_tags=True)
+        # # bot.clarifai_check_img_for(['landscape'], comment=True, comments=['Awesome shot!😄', 'Nice shot!😄', 'Great!😄', 'Nice one', 'Awesome', 'Cool!'])
+        # # bot.like_by_locations(['31499759/rome-italy'], amount=10, skip_top_posts=False)
+        # bot.unfollow_users(
+        #     amount=300,
+        #     InstapyFollowed=(True, "nonfollowers"),
+        #     style="FIFO",
+        #     unfollow_after=24 * 60 * 60,
+        #     sleep_delay=60,
+        # )
+        # bot.follow_user_followers(["portraitgames"], amount=10, randomize=False)
+        # # bot.follow_by_tags(env.hashtags, amount=10)
+        # bot.like_by_feed(amount=50, randomize=True, unfollow=True, interact=True)
         bot.set_dont_include(friend_list)
         bot.set_dont_like(dont_like)
         bot.set_ignore_if_contains(ignore_words)
-        # bot.set_dont_unfollow_active_users(enabled=True, posts=3)
-        bot.set_user_interact(
-            amount=random.randint(1, 3), randomize=True, percentage=20, media="Photo"
+        bot.clarifai_check_img_for(env.clarifai_check_img_for)
+        bot.like_by_tags(
+            [random.choice(env.hashtags)], amount=25, interact=True, media="Photo"
         )
-        bot.set_do_follow(enabled=True, percentage=5, times=1)
-
-        # bot.set_delimit_commenting(enabled=True, max=32, min=3)
-        # bot.set_smart_hashtags(['portraitpage', 'portraitgames', 'agameof10k', 'a], limit=3, sort='top', log_tags=True)
-        # bot.clarifai_check_img_for(['landscape'], comment=True, comments=['Awesome shot!😄', 'Nice shot!😄', 'Great!😄', 'Nice one', 'Awesome', 'Cool!'])
-        # bot.like_by_locations(['31499759/rome-italy'], amount=10, skip_top_posts=False)
+        bot.set_user_interact(amount=1, randomize=True, percentage=20, media="Photo")
+        bot.set_do_like(enabled=True, percentage=100)
+        bot.set_do_comment(enabled=False, percentage=0)
+        bot.set_do_follow(enabled=False, percentage=0)
+        bot.follow_user_followers(
+            ["portraitgames"],
+            amount=random.randint(20, 50),
+            randomize=False,
+            interact=True,
+            sleep_delay=300,
+        )
         bot.unfollow_users(
             amount=300,
             InstapyFollowed=(True, "nonfollowers"),
             style="FIFO",
-            unfollow_after=24 * 60 * 60,
+            unfollow_after=12 * 60 * 60,
             sleep_delay=60,
         )
-        bot.follow_user_followers(["portraitgames"], amount=10, randomize=False)
-        # bot.follow_by_tags(env.hashtags, amount=10)
-        bot.like_by_feed(amount=50, randomize=True, unfollow=True, interact=True)
-        bot.clarifai_check_img_for(env.clarifai_check_img_for)
-        bot.like_by_tags(env.hashtags, amount=50, interact=True, media="Photo")
-
     except expression as identifier:
         print(traceback.format_exc())
     finally:
         bot.end()
 
 
-schedule.every(6).hours.do(job).run()
+schedule.every().hour.do(job).run()
 
 while True:
     schedule.run_pending()
     time.sleep(1)
+
