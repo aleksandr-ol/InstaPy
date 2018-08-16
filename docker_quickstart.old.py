@@ -6,13 +6,16 @@ import time
 from proxy_extension import create_proxy_extension
 import random
 
+
+# import random
+# random.choice(array)
+
 dont_like = env.dont_like
 ignore_words = env.ignore_words
 friend_list = env.friend_list
 
 
-def job(run=0):
-    current_hashtag = random.choice(env.hashtags)
+def job():
     bot = InstaPy(
         username=env.username,
         password=env.passsword,
@@ -20,8 +23,8 @@ def job(run=0):
         headless_browser=True,
         bypass_suspicious_attempt=True,
         multi_logs=True,
-        proxy_address="212.237.52.87",
-        proxy_port=443,
+        # proxy_address="212.237.52.87",
+        # proxy_port=443,
     )
     try:
         bot.set_selenium_remote_session(selenium_url="http://selenium:4444/wd/hub")
@@ -76,11 +79,11 @@ def job(run=0):
         bot.like_by_tags(
             # [random.choice(env.hashtags)], amount=25, interact=True, media="Photo"
             env.hashtags,
-            amount=25,
+            amount=10,
             interact=True,
             media="Photo",
         )
-        bot.set_user_interact(amount=2, randomize=True, percentage=20, media="Photo")
+        bot.set_user_interact(amount=1, randomize=True, percentage=20, media="Photo")
         bot.set_do_like(enabled=True, percentage=100)
         bot.set_do_comment(enabled=False, percentage=0)
         bot.set_do_follow(enabled=False, percentage=0)
@@ -99,13 +102,16 @@ def job(run=0):
             sleep_delay=60,
         )
         bot.end()
+        # time.sleep(60 * 60)
+        # return job()
     except expression as identifier:
         print(traceback.format_exc())
 
 
-schedule.every(4).hour.do(job).run()
+job()
+# schedule.every(4).hours.do(job).run()
 
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
 
