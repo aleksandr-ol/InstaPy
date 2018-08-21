@@ -13,7 +13,7 @@ def job(cursor=0, username=env.username, password=env.password):
         username=username,
         password=password,
         selenium_local_session=False,
-        nogui=True,
+        headless_browser=True,
         bypass_suspicious_attempt=True,
         multi_logs=True,
         proxy_address="212.237.52.87",
