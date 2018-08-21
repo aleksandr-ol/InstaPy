@@ -65,13 +65,13 @@ def job(cursor=0):
         bot.set_user_interact(
             amount=random.randint(1, 3), randomize=True, percentage=20, media="Photo"
         )
-        # bot.follow_user_followers(
-        #     ["portraitgames", "portraits_vision"", "portraitvision"],
-        #     amount=10,
-        #     randomize=False,
-        #     interact=True,
-        #     sleep_delay=300,
-        # )
+        bot.follow_user_followers(
+            ["portraitgames", "portraits_vision", "portraitvision"],
+            amount=10,
+            randomize=False,
+            interact=True,
+            sleep_delay=60,
+        )
         bot.follow_by_tags(current_hashtag, amount=20)
         bot.like_by_tags(current_hashtag, amount=20, interact=True, media="Photo")
         bot.unfollow_users(
