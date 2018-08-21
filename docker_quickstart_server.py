@@ -1,10 +1,11 @@
 from instapy import InstaPy
 import traceback
 import env
-import schedule
 import time
-from proxy_extension import create_proxy_extension
+
 import random
+
+# from proxy_extension import create_proxy_extension
 
 
 def job(cursor=0, username=env.username, password=env.password):
@@ -16,8 +17,8 @@ def job(cursor=0, username=env.username, password=env.password):
         headless_browser=True,
         bypass_suspicious_attempt=True,
         multi_logs=True,
-        proxy_address="212.237.52.87",
-        proxy_port=443,
+        # proxy_address="212.237.52.87",
+        # proxy_port=443,
     )
     try:
         bot.set_selenium_remote_session(selenium_url="http://selenium:4444/wd/hub")
