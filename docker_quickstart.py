@@ -7,7 +7,7 @@ from proxy_extension import create_proxy_extension
 import random
 
 
-def job(cursor=0, username=env.username, password=env.passsword):
+def job(cursor=0, username=env.username, password=env.password):
     current_hashtag = env.hashtags[cursor : cursor + 1]
     bot = InstaPy(
         username=username,
