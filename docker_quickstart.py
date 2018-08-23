@@ -8,7 +8,7 @@ import random
 
 
 def job(cursor=0, username=env.username, password=env.password):
-    current_hashtag = env.hashtags[cursor : cursor + 1]
+    current_hashtag = env.hashtags[cursor: cursor + 1]
     bot = InstaPy(
         username=username,
         password=password,
@@ -18,7 +18,8 @@ def job(cursor=0, username=env.username, password=env.password):
         multi_logs=True,
     )
     try:
-        bot.set_selenium_remote_session(selenium_url="http://selenium:4444/wd/hub")
+        bot.set_selenium_remote_session(
+            selenium_url="http://selenium:4444/wd/hub")
         bot.login()
         bot.set_relationship_bounds(
             enabled=True,
@@ -33,39 +34,41 @@ def job(cursor=0, username=env.username, password=env.password):
         bot.clarifai_check_img_for(env.clarifai_check_img_for)
         bot.set_dont_include(env.friend_list)
         bot.set_dont_like(env.dont_like)
-        
-        bot.set_user_interact(amount=random.randint(1, 3), percentage=30, media="Photo")
+        bot.set_user_interact(
+            amount=random.randint(1, 3), randomize=True, percentage=30, media="Photo"
+        )
 
         bot.like_by_tags(
             current_hashtag, amount=random.randint(5, 15), interact=True, media="Photo"
         )
-        # bot.like_by_feed(amount=random.randint(5, 15), interact=True)
+        bot.like_by_feed(amount=random.randint(5, 10),
+                         randomize=True, interact=True)
 
         bot.follow_user_followers(
             env.follow_userbase,
-            # randomize=True,
+            randomize=True,
             interact=True,
-            amount=random.randint(15, 30),
+            amount=random.randint(5, 10),
         )
 
-        bot.follow_by_tags(current_hashtag, amount=random.randint(15, 35))
+        bot.follow_by_tags(current_hashtag, amount=random.randint(5, 25))
         bot.unfollow_users(
-            amount=random.randint(10, 20),
+            amount=random.randint(25, 50),
             InstapyFollowed=(True, "nonfollowers"),
             style="RANDOM",
             unfollow_after=24 * 60 * 60,
-            sleep_delay=random.randint(60, 90),
+            sleep_delay=655,
         )
     except expression as identifier:
         print(traceback.format_exc())
     finally:
         bot.end()
-        wait = 60 * 30  # 1hr
+        wait = 60 * 60  # 1hr
         cursor += 1
         if cursor == len(env.hashtags) - 1:
             cursor = 0
-            print("rewinding hastags, starting over in 1hrs")
-            time.sleep(60 * 60)
+            print("rewinding hastags, starting over in 3hrs")
+            time.sleep(wait * 3)
         else:
             time.sleep(wait)
         return job(cursor)
