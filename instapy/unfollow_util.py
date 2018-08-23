@@ -446,7 +446,7 @@ def unfollow(browser,
 
                 if (unfollowNum != 0 and
                         hasSlept is False and
-                            unfollowNum % 10 == 0):
+                            unfollowNum % 100 == 0):
                     logger.info('sleeping for about {}min'
                                 .format(int(sleep_delay/60)))
                     sleep(sleep_delay)

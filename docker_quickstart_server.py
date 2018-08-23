@@ -1,10 +1,11 @@
 from instapy import InstaPy
 import traceback
 import env
-import schedule
 import time
-from proxy_extension import create_proxy_extension
+
 import random
+
+# from proxy_extension import create_proxy_extension
 
 
 def job(cursor=0, username=env.username, password=env.password):
@@ -16,18 +17,20 @@ def job(cursor=0, username=env.username, password=env.password):
         headless_browser=True,
         bypass_suspicious_attempt=True,
         multi_logs=True,
+        # proxy_address="212.237.52.87",
+        # proxy_port=443,
     )
     try:
         bot.set_selenium_remote_session(selenium_url="http://selenium:4444/wd/hub")
         bot.login()
         bot.set_relationship_bounds(
             enabled=True,
-            # potency_ratio=1.3,
+            potency_ratio=1.3,
             delimit_by_numbers=True,
             max_followers=10000,
             max_following=3000,
             min_followers=400,
-            # min_following=50,
+            min_following=50,
         )
 
         bot.clarifai_check_img_for(env.clarifai_check_img_for)
@@ -38,9 +41,9 @@ def job(cursor=0, username=env.username, password=env.password):
         )
 
         bot.like_by_tags(
-            current_hashtag, amount=random.randint(5, 15), interact=True, media="Photo"
+            current_hashtag, amount=random.randint(2, 5), interact=True, media="Photo"
         )
-        bot.like_by_feed(amount=random.randint(5, 10), randomize=True, interact=True)
+        session.like_by_feed(amount=100, randomize=random.randint(2, 5), interact=True)
 
         bot.follow_user_followers(
             env.follow_userbase,
