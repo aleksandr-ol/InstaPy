@@ -1,3 +1,7 @@
+import lazarus
+
+lazarus.default()
+
 from instapy import InstaPy
 import traceback
 import env
@@ -5,9 +9,18 @@ import schedule
 import time
 from proxy_extension import create_proxy_extension
 import random
+import pymongo
+
+client = pymongo.MongoClient("mongodb", 27017)
+db = client.instapy
+user = db.users.find_one()
+print(user.get("username"))
+if user is None:
+    print("No user found")
+    exit(1)
 
 
-def job(cursor=0, username=env.username, password=env.password):
+def job(cursor=0, username=user.get("username"), password=user.get("password")):
     current_hashtag = env.hashtags[cursor : cursor + 1]
     bot = InstaPy(
         username=username,
@@ -72,4 +85,8 @@ def job(cursor=0, username=env.username, password=env.password):
         return job(cursor)
 
 
-job()
+# job()
+print("OK")
+while True:
+    time.sleep(1)
+
