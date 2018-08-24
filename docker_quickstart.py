@@ -40,33 +40,33 @@ def job(cursor=0, username=env.username, password=env.password):
         bot.like_by_tags(
             current_hashtag, amount=random.randint(5, 15), interact=True, media="Photo"
         )
-        bot.like_by_feed(amount=random.randint(5, 10), randomize=True, interact=True)
+        bot.like_by_feed(amount=random.randint(5, 15), randomize=True, interact=True)
 
         bot.follow_user_followers(
             env.follow_userbase,
             randomize=True,
             interact=True,
-            amount=random.randint(5, 10),
+            amount=random.randint(15, 30),
         )
 
-        bot.follow_by_tags(current_hashtag, amount=random.randint(5, 25))
+        bot.follow_by_tags(current_hashtag, amount=random.randint(15, 35))
         bot.unfollow_users(
-            amount=random.randint(25, 50),
+            amount=random.randint(10, 20),
             InstapyFollowed=(True, "nonfollowers"),
             style="RANDOM",
             unfollow_after=24 * 60 * 60,
-            sleep_delay=655,
+            sleep_delay=random.randint(60, 90),
         )
     except expression as identifier:
         print(traceback.format_exc())
     finally:
         bot.end()
-        wait = 60 * 60  # 1hr
+        wait = 60 * 30  # 1hr
         cursor += 1
         if cursor == len(env.hashtags) - 1:
             cursor = 0
-            print("rewinding hastags, starting over in 3hrs")
-            time.sleep(wait * 3)
+            print("rewinding hastags, starting over in 1hrs")
+            time.sleep(60 * 60)
         else:
             time.sleep(wait)
         return job(cursor)
