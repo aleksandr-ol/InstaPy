@@ -11,6 +11,22 @@ from proxy_extension import create_proxy_extension
 import random
 import pymongo
 
+
+class Bot(InstaPy):
+    def start_bot(self):
+        pass
+
+
+b = Bot(
+    username="asds",
+    password="assd",
+    selenium_local_session=False,
+    headless_browser=True,
+    bypass_suspicious_attempt=True,
+    multi_logs=True,
+)
+print(b)
+
 client = pymongo.MongoClient("mongodb", 27017)
 db = client.instapy
 user = db.users.find_one()
