@@ -33,18 +33,17 @@ def job(cursor=0, username=env.username, password=env.password):
         bot.clarifai_check_img_for(env.clarifai_check_img_for)
         bot.set_dont_include(env.friend_list)
         bot.set_dont_like(env.dont_like)
-        bot.set_user_interact(
-            amount=random.randint(1, 3), randomize=True, percentage=30, media="Photo"
-        )
+        
+        bot.set_user_interact(amount=random.randint(1, 3), percentage=30, media="Photo")
 
         bot.like_by_tags(
             current_hashtag, amount=random.randint(5, 15), interact=True, media="Photo"
         )
-        bot.like_by_feed(amount=random.randint(5, 15), randomize=True, interact=True)
+        # bot.like_by_feed(amount=random.randint(5, 15), interact=True)
 
         bot.follow_user_followers(
             env.follow_userbase,
-            randomize=True,
+            # randomize=True,
             interact=True,
             amount=random.randint(15, 30),
         )
