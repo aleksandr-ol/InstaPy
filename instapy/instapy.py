@@ -197,7 +197,6 @@ class InstaPy:
         """
         Handles the creation and retrieval of loggers to avoid re-instantiation.
         """
-
         existing_logger = Settings.loggers.get(__name__)
         if existing_logger is not None:
             return existing_logger
@@ -1251,7 +1250,13 @@ class InstaPy:
                                            self.logfolder)
 
                         if liked:
-
+                            try:
+                              self.save_userlog(action='LIKE', payload={
+                                  "user": user_name,
+                                  "link": link,
+                                })
+                            except:
+                              print("error saving log to mongo, continue")
                             if interact:
                                 username = (self.browser.
                                     find_element_by_xpath(

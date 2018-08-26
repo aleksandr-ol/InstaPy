@@ -1,11 +1,12 @@
-import lazarus
+# import lazarus
 
-lazarus.default()
+# lazarus.default()
 
 from instapy import InstaPy
+import datetime
 import traceback
 import env
-import schedule
+# import schedule
 import time
 from proxy_extension import create_proxy_extension
 import random
@@ -26,6 +27,8 @@ class Bot(InstaPy):
             headless_browser=True,
             bypass_suspicious_attempt=True,
             multi_logs=True,
+            # proxy_address="212.237.52.87",
+            # proxy_port=443,
         )
 
     def connect_mongodb(self):
@@ -45,6 +48,17 @@ class Bot(InstaPy):
             exit(1)
         print(current_account["username"])
         return current_account
+
+    def save_userlog(self, action="INFO", payload={}):
+        user_id = self.current_user.get("_id")
+        return self.db.userlog.insert(
+            {
+                "user": user_id,
+                action: action,
+                "data": payload,
+                "createdAt": datetime.datetime.utcnow(),
+            }
+        )
 
     def get_current_hashtag(self):
         hashtags = self.current_account.get("hashtags", [])
@@ -80,11 +94,11 @@ class Bot(InstaPy):
         self.set_relationship_bounds(
             enabled=True,
             # potency_ratio=1.3,
-            delimit_by_numbers=True,
+            delimit_by_numbers=False,
             max_followers=10000,
             max_following=3000,
             min_followers=400,
-            # min_following=50,
+            min_following=50,
         )
         self.clarifai_check_img_for(account["clarifai_check_img_for"])
         self.set_dont_include(account["friend_list"])
@@ -102,13 +116,6 @@ class Bot(InstaPy):
             interact=True,
             media="Photo",
         )
-
-
-<< << << < HEAD
-        bot.like_by_feed(amount=random.randint(5, 10),
-                         randomize=True, interact=True)
-== == == =
->>>>>> > integrated mongodb
 
         self.like_by_feed(amount=random.randint(5, 10),
                           randomize=True, interact=True)
@@ -133,7 +140,9 @@ class Bot(InstaPy):
 
     def on_session_end(self):
         self.end()
-        self.take_a_break(60)
+        self.take_a_break(30 * 60)  # 30 min
+        self.current_account = self.get_user_data(
+            self.user_email, self.user_account)
         return self.login()
 
     def take_a_break(self, break_time_in_seconds=60):
@@ -141,7 +150,8 @@ class Bot(InstaPy):
 
     def login(self):
         self.current_hashtag = self.get_current_hashtag()
-        self.set_selenium_remote_session(selenium_url="http://selenium:4444/wd/hub")
+        self.set_selenium_remote_session(
+            selenium_url="http://selenium:4444/wd/hub")
         self.set_current_settings()
         self.set_routines()
         return super().login()
@@ -149,4 +159,3 @@ class Bot(InstaPy):
 
 bot = Bot(user_email=env.email, user_account=env.username)
 bot.login()
-
