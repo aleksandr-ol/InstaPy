@@ -13,43 +13,68 @@ import pymongo
 
 
 class Bot(InstaPy):
-    def start_bot(self):
-        pass
+    def __init__(self, *args, **kwards):
+        self.connect_mongodb()
+        self.user_email = kwards.get("user_email")
+        self.user_account = kwards.get("user_account")
+        self.current_account = self.get_user_data(self.user_email, self.user_account)
+        super().__init__(
+            username=self.current_account["username"],
+            password=self.current_account["password"],
+            selenium_local_session=False,
+            headless_browser=True,
+            bypass_suspicious_attempt=True,
+            multi_logs=True,
+        )
 
+    def connect_mongodb(self):
+        self.db = pymongo.MongoClient("mongodb", 27017).instapy
+        return self.db
 
-b = Bot(
-    username="asds",
-    password="assd",
-    selenium_local_session=False,
-    headless_browser=True,
-    bypass_suspicious_attempt=True,
-    multi_logs=True,
-)
-print(b)
+    def get_user_data(self, user_email, user_account):
+        self.current_user = self.db.user.find_one({"email": user_email})
+        if not self.current_user:
+            print("User not found, exiting.")
+            exit(1)
+        current_account = self.db.instagram_account.find_one(
+            {"user": self.current_user["_id"], "username": user_account}
+        )
+        if not current_account:
+            print("Acccounts not found, exiting.")
+            exit(1)
+        print(current_account["username"])
+        return current_account
 
-client = pymongo.MongoClient("mongodb", 27017)
-db = client.instapy
-user = db.users.find_one()
-print(user.get("username"))
-if user is None:
-    print("No user found")
-    exit(1)
+    def get_current_hashtag(self):
+        hashtags = self.current_account.get("hashtags", [])
+        pointer = None
+        if not len(hashtags):
+            return []
+        elif not self.current_account.get("hashtag_pointer"):
+            pointer = 0
+        else:
+            pointer = hashtags.index(self.current_account.get("hashtag_pointer"))
 
+        # rewind if at last position
+        if pointer != 0 and pointer == len(hashtags) - 1:
+            pointer = 0
+        else:
+            pointer += 1
+        current_hashtag = hashtags[pointer : pointer + 1]
+        
+        print("Starting with current hashtag %s", (current_hashtag[0]))
 
-def job(cursor=0, username=user.get("username"), password=user.get("password")):
-    current_hashtag = env.hashtags[cursor : cursor + 1]
-    bot = InstaPy(
-        username=username,
-        password=password,
-        selenium_local_session=False,
-        headless_browser=True,
-        bypass_suspicious_attempt=True,
-        multi_logs=True,
-    )
-    try:
-        bot.set_selenium_remote_session(selenium_url="http://selenium:4444/wd/hub")
-        bot.login()
-        bot.set_relationship_bounds(
+        self.set_hashtag_pointer(current_hashtag[0])
+        return current_hashtag
+
+    def set_hashtag_pointer(self, hashtag):
+        return self.db.instagram_account.update(
+            {"user": self.current_user["_id"]}, {"$set": {"hashtag_pointer": hashtag}}
+        )
+
+    def set_current_settings(self):
+        account = self.current_account
+        self.set_relationship_bounds(
             enabled=True,
             # potency_ratio=1.3,
             delimit_by_numbers=True,
@@ -58,51 +83,60 @@ def job(cursor=0, username=user.get("username"), password=user.get("password")):
             min_followers=400,
             # min_following=50,
         )
-
-        bot.clarifai_check_img_for(env.clarifai_check_img_for)
-        bot.set_dont_include(env.friend_list)
-        bot.set_dont_like(env.dont_like)
-        bot.set_user_interact(
+        self.clarifai_check_img_for(account["clarifai_check_img_for"])
+        self.set_dont_include(account["friend_list"])
+        self.set_dont_like(account["dont_like"])
+        self.set_user_interact(
             amount=random.randint(1, 3), randomize=True, percentage=30, media="Photo"
         )
+        return 0
 
-        bot.like_by_tags(
-            current_hashtag, amount=random.randint(5, 15), interact=True, media="Photo"
+    def set_routines(self):
+        account = self.current_account
+        self.like_by_tags(
+            self.current_hashtag,
+            amount=random.randint(5, 15),
+            interact=True,
+            media="Photo",
         )
-        bot.like_by_feed(amount=random.randint(5, 10), randomize=True, interact=True)
 
-        bot.follow_user_followers(
-            env.follow_userbase,
+        self.like_by_feed(amount=random.randint(5, 10), randomize=True, interact=True)
+
+        self.follow_user_followers(
+            account["follow_userbase"],
             randomize=True,
             interact=True,
             amount=random.randint(5, 10),
         )
 
-        bot.follow_by_tags(current_hashtag, amount=random.randint(5, 25))
-        bot.unfollow_users(
+        self.follow_by_tags(self.current_hashtag, amount=random.randint(5, 25))
+        self.unfollow_users(
             amount=random.randint(25, 50),
             InstapyFollowed=(True, "nonfollowers"),
             style="RANDOM",
             unfollow_after=24 * 60 * 60,
             sleep_delay=655,
         )
-    except expression as identifier:
-        print(traceback.format_exc())
-    finally:
-        bot.end()
-        wait = 60 * 60  # 1hr
-        cursor += 1
-        if cursor == len(env.hashtags) - 1:
-            cursor = 0
-            print("rewinding hastags, starting over in 3hrs")
-            time.sleep(wait * 3)
-        else:
-            time.sleep(wait)
-        return job(cursor)
+        self.on_session_end()
+        return 0
+
+    def on_session_end(self):
+        self.end()
+        self.take_a_break(60)
+        return self.login()
+
+    def take_a_break(self, break_time_in_seconds=60):
+        return time.sleep(break_time_in_seconds)
+
+    def login(self):
+        self.current_hashtag = self.get_current_hashtag()
+        self.set_selenium_remote_session(selenium_url="http://selenium:4444/wd/hub")
+        self.set_current_settings()
+        self.set_routines()
+        return super().login()
 
 
-# job()
-print("OK")
-while True:
-    time.sleep(1)
+bot = Bot(user_email=env.email, user_account=env.username)
+bot.login()
+
 
