@@ -1,6 +1,8 @@
 # import lazarus
 
 # lazarus.default()
+import os
+from dotenv import load_dotenv
 
 from instapy import InstaPy
 import datetime
@@ -12,6 +14,8 @@ import env
 import time
 import random
 import pymongo
+
+load_dotenv()
 
 
 class Bot(InstaPy):
@@ -34,7 +38,10 @@ class Bot(InstaPy):
         )
 
     def connect_mongodb(self):
-        self.db = pymongo.MongoClient("mongodb", 27017).instapy
+        self.db_client = pymongo.MongoClient(
+            os.getenv("MONGODB_HOST"), os.getenv("MONGODB_PORT")
+        )
+        self.db = self.db_client[os.getenv("MONGODB_DB")]
         return self.db
 
     def get_user_data(self, user_email, user_account):
@@ -76,6 +83,8 @@ class Bot(InstaPy):
         # rewind if at last position
         if pointer != 0 and pointer == len(hashtags) - 1:
             pointer = 0
+            # if rewinding take a break since we did a pretty long session to get here
+            time.sleep(60 * 60 * 2)  # 2hrs
         else:
             pointer += 1
         current_hashtag = hashtags[pointer: pointer + 1]
@@ -121,20 +130,21 @@ class Bot(InstaPy):
 
         # self.like_by_feed(amount=random.randint(5, 10), randomize=True, interact=True)
 
-        self.follow_user_followers(
-            account["follow_userbase"],
-            randomize=True,
-            interact=True,
-            amount=random.randint(5, 10),
-        )
+        # Broken
+        # self.follow_user_followers(
+        #     account["follow_userbase"],
+        #     randomize=True,
+        #     interact=True,
+        #     amount=random.randint(5, 10),
+        # )
 
-        self.follow_by_tags(self.current_hashtag, amount=random.randint(5, 25))
+        self.follow_by_tags(self.current_hashtag, amount=random.randint(10, 25))
         self.unfollow_users(
             amount=random.randint(25, 50),
             InstapyFollowed=(True, "nonfollowers"),
             style="RANDOM",
             unfollow_after=24 * 60 * 60,
-            sleep_delay=655,
+            sleep_delay=120,
         )
         self.on_session_end()
         return 0
@@ -179,5 +189,5 @@ class Bot(InstaPy):
         return self.start_routines()
 
 
-bot = Bot(user_email=env.email, user_account=env.username)
+bot = Bot(user_email=os.getenv("EMAIL"), user_account=os.getenv("USERNAME"))
 bot.login()
