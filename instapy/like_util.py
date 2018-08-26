@@ -514,7 +514,7 @@ def check_link(browser, post_link, dont_like, mandatory_words, ignore_if_contain
     return False, user_name, is_video, 'None', "Success"
 
 
-def like_image(browser, username, blacklist, logger, logfolder):
+def like_image(browser=None, username=None, blacklist=None, logger=None, logfolder=None, action_logger=None, link=None):
     """Likes the browser opened image"""
 
     like_xpath = "//button/span[@aria-label='Like']"
@@ -532,6 +532,13 @@ def like_image(browser, username, blacklist, logger, logfolder):
         if len(liked_elem) == 1:
             logger.info('--> Image Liked!')
             update_activity('likes')
+            try:
+                action_logger(action='LIKE', payload={
+                    "user": username,
+                    "link": link,
+                  })
+            except:
+                print("error saving log to mongo, continue")
             if blacklist['enabled'] is True:
                 action = 'liked'
                 add_user_to_blacklist(

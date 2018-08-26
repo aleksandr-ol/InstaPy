@@ -6,9 +6,10 @@ from instapy import InstaPy
 import datetime
 import traceback
 import env
+
 # import schedule
+# from proxy_extension import create_proxy_extension
 import time
-from proxy_extension import create_proxy_extension
 import random
 import pymongo
 
@@ -26,6 +27,7 @@ class Bot(InstaPy):
             headless_browser=True,
             bypass_suspicious_attempt=True,
             multi_logs=True,
+            action_logger=self.save_userlog
             # proxy_address="212.237.52.87",
             # proxy_port=443,
         )
@@ -50,10 +52,10 @@ class Bot(InstaPy):
 
     def save_userlog(self, action="INFO", payload={}):
         user_id = self.current_user.get("_id")
-        return self.db.userlog.insert(
+        return self.db.actionlog.insert(
             {
                 "user": user_id,
-                action: action,
+                "action": action,
                 "data": payload,
                 "createdAt": datetime.datetime.utcnow(),
             }
@@ -105,16 +107,16 @@ class Bot(InstaPy):
         )
         return 0
 
-    def set_routines(self):
+    def start_routines(self):
         account = self.current_account
         self.like_by_tags(
             self.current_hashtag,
-            amount=random.randint(5, 15),
+            amount=random.randint(15, 35),
             interact=True,
             media="Photo",
         )
 
-        self.like_by_feed(amount=random.randint(5, 10), randomize=True, interact=True)
+        # self.like_by_feed(amount=random.randint(5, 10), randomize=True, interact=True)
 
         self.follow_user_followers(
             account["follow_userbase"],
@@ -136,19 +138,40 @@ class Bot(InstaPy):
 
     def on_session_end(self):
         self.end()
+        self.action_logger(
+            action="SESSION_END",
+            payload={
+                "message": "Session starting",
+                "date": datetime.datetime.fromtimestamp(time.time()).strftime(
+                    "%H:%M:%S %d-%m-%Y"
+                ),
+            },
+        )
         self.take_a_break(30 * 60)  # 30 min
         self.current_account = self.get_user_data(self.user_email, self.user_account)
         return self.login()
 
     def take_a_break(self, break_time_in_seconds=60):
+        self.action_logger(
+            action="BREAK",
+            payload={
+                "message": "Taking a break for " + break_time_in_seconds + "seconds",
+                "date": datetime.datetime.fromtimestamp(time.time()).strftime(
+                    "%H:%M:%S %d-%m-%Y"
+                ),
+            },
+        )
         return time.sleep(break_time_in_seconds)
 
     def login(self):
         self.current_hashtag = self.get_current_hashtag()
         self.set_selenium_remote_session(selenium_url="http://selenium:4444/wd/hub")
+        super().login()
+        self.action_logger(
+            action="SESSION_START", payload={"message": "Session starting"}
+        )
         self.set_current_settings()
-        self.set_routines()
-        return super().login()
+        return self.start_routines()
 
 
 bot = Bot(user_email=env.email, user_account=env.username)
