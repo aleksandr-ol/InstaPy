@@ -84,7 +84,11 @@ class InstaPy:
                  proxy_chrome_extension=None,
                  proxy_port=0,
                  bypass_suspicious_attempt=False,
-                 multi_logs=False):
+                 multi_logs=False,
+                 action_logger=None):
+
+        if action_logger != None:
+          self.action_logger = action_logger
 
         if nogui:
             self.display = Display(visible=0, size=(800, 600))
@@ -892,7 +896,8 @@ class InstaPy:
                                            user_name,
                                            self.blacklist,
                                            self.logger,
-                                           self.logfolder)
+                                           self.logfolder,
+                                           self.action_logger)
 
                         if liked:
                             liked_img += 1
@@ -961,7 +966,8 @@ class InstaPy:
                                                         user_name,
                                                         self.blacklist,
                                                         self.logger,
-                                                        self.logfolder)
+                                                        self.logfolder,
+                                                        self.action_logger)
 
                             else:
                                 self.logger.info('--> Not following')
@@ -1132,7 +1138,8 @@ class InstaPy:
                                                         user_name,
                                                         self.blacklist,
                                                         self.logger,
-                                                        self.logfolder)
+                                                        self.logfolder,
+                                                        self.action_logger)
 
                             else:
                                 self.logger.info('--> Not following')
@@ -1247,16 +1254,11 @@ class InstaPy:
                                            user_name,
                                            self.blacklist,
                                            self.logger,
-                                           self.logfolder)
+                                           self.logfolder,
+                                           self.action_logger,
+                                           link)
 
                         if liked:
-                            try:
-                              self.save_userlog(action='LIKE', payload={
-                                  "user": user_name,
-                                  "link": link,
-                                })
-                            except:
-                              print("error saving log to mongo, continue")
                             if interact:
                                 username = (self.browser.
                                     find_element_by_xpath(
@@ -1342,7 +1344,8 @@ class InstaPy:
                                                         user_name,
                                                         self.blacklist,
                                                         self.logger,
-                                                        self.logfolder)
+                                                        self.logfolder,
+                                                        self.action_logger)
                             else:
                                 self.logger.info('--> Not following')
                                 sleep(1)
@@ -1432,7 +1435,8 @@ class InstaPy:
                                         username,
                                         self.blacklist,
                                         self.logger,
-                                        self.logfolder)
+                                        self.logfolder,
+                                        self.action_logger)
             else:
                 self.logger.info('--> Not following')
                 sleep(1)
@@ -1472,7 +1476,9 @@ class InstaPy:
                                            user_name,
                                            self.blacklist,
                                            self.logger,
-                                           self.logfolder)
+                                           self.logfolder,
+                                           self.action_logger,
+                                           link)
 
                         if liked:
                             total_liked_img += 1
@@ -1654,7 +1660,8 @@ class InstaPy:
                                 username,
                                 self.blacklist,
                                 self.logger,
-                                self.logfolder)
+                                self.logfolder,
+                                self.action_logger)
 
                             following = False
                         else:
@@ -1671,7 +1678,9 @@ class InstaPy:
                                                user_name,
                                                self.blacklist,
                                                self.logger,
-                                               self.logfolder)
+                                               self.logfolder,
+                                               self.action_logger,
+                                               link)
                             if liked:
 
                                 total_liked_img += 1
@@ -1858,7 +1867,7 @@ class InstaPy:
                         not_valid_users += 1
                         simulated_unfollow += 1
                         self.logger.info("Simulated unfollow: {}  ~not valid user".format(simulated_unfollow))
-                        unfollow_user(self.browser, self.username, person, self.relationship_data, self.logger, self.logfolder)
+                        unfollow_user(self.browser, self.username, person, self.relationship_data, self.logger, self.logfolder,self.action_logger)
                         continue
                 # Do interactions if any
                 do_interact = random.randint(0, 100) <= self.user_interact_percentage
@@ -1977,7 +1986,7 @@ class InstaPy:
                         not_valid_users += 1
                         simulated_unfollow += 1
                         self.logger.info("Simulated unfollow: {}  ~not valid user".format(simulated_unfollow))
-                        unfollow_user(self.browser, self.username, person, self.relationship_data, self.logger, self.logfolder)
+                        unfollow_user(self.browser, self.username, person, self.relationship_data, self.logger, self.logfolder, self.action_logger)
                         continue
                 # Do interactions if any
                 do_interact = random.randint(0, 100) <= self.user_interact_percentage
@@ -2096,7 +2105,7 @@ class InstaPy:
                         not_valid_users += 1
                         simulated_unfollow += 1
                         self.logger.info("Simulated unfollow: {}  ~not valid user".format(simulated_unfollow))
-                        unfollow_user(self.browser, self.username, person, self.relationship_data, self.logger, self.logfolder)
+                        unfollow_user(self.browser, self.username, person, self.relationship_data, self.logger, self.logfolder, self.action_logger)
                         continue
 
                 followed = self.follow_by_list(person, self.follow_times, sleep_delay, interact)
@@ -2219,7 +2228,7 @@ class InstaPy:
                         not_valid_users += 1
                         simulated_unfollow += 1
                         self.logger.info("Simulated unfollow: {}  ~not valid user".format(simulated_unfollow))
-                        unfollow_user(self.browser, self.username, person, self.relationship_data, self.logger, self.logfolder)
+                        unfollow_user(self.browser, self.username, person, self.relationship_data, self.logger, self.logfolder, self.action_logger)
                         continue
 
                 followed = self.follow_by_list(person, self.follow_times, sleep_delay, interact)
@@ -2435,7 +2444,9 @@ class InstaPy:
                                                    user_name,
                                                    self.blacklist,
                                                    self.logger,
-                                                   self.logfolder)
+                                                   self.logfolder,
+                                                   self.action_logger,
+                                                   link)
 
                                 if liked:
                                     username = (self.browser.
@@ -2542,7 +2553,7 @@ class InstaPy:
                                     '--> Image not liked: {}'.format(reason.encode('utf-8')))
                                 inap_img += 1
                                 if reason == 'Inappropriate' and unfollow:
-                                    unfollow_user(self.browser, self.username, user_name, self.relationship_data, self.logger, self.logfolder)
+                                    unfollow_user(self.browser, self.username, user_name, self.relationship_data, self.logger, self.logfolder, self.action_logger)
                         except NoSuchElementException as err:
                             self.logger.error('Invalid Page: {}'.format(err))
 
@@ -2933,7 +2944,9 @@ class InstaPy:
                                        user_name,
                                        self.blacklist,
                                        self.logger,
-                                       self.logfolder)
+                                       self.logfolder,
+                                       self.action_logger,
+                                       link)
 
                     if liked:
                         liked_img += 1

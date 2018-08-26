@@ -496,7 +496,7 @@ def unfollow(browser,
     return unfollowNum
 
 
-def follow_user(browser, login, user_name, blacklist, logger, logfolder):
+def follow_user(browser=None, login=None, user_name=None, blacklist=None, logger=None, logfolder=None, action_logger=None):
     """Follows the user of the currently opened image"""
     follow_xpath =  "//button[text()='Follow']"
     try:
@@ -513,6 +513,12 @@ def follow_user(browser, login, user_name, blacklist, logger, logfolder):
                 "arguments[0].style.opacity = 1", follow_button)
             click_element(browser, follow_button) # follow_button.click()
         update_activity('follows')
+        try:
+            action_logger(action='FOLLOW', payload={
+              "user": user_name,
+            })
+        except:
+            print("error saving log to mongo, continue")
         try:
             userid = browser.execute_script(
                 "return window._sharedData.entry_data.PostPage[0].graphql.shortcode_media.owner.id")
@@ -535,6 +541,12 @@ def follow_user(browser, login, user_name, blacklist, logger, logfolder):
                 user_name, blacklist['campaign'], action, logger, logfolder
             )
         sleep(3)
+        try:
+            action_logger(action='FOLLOW', payload={
+                "user": user_name
+            })
+        except:
+            print("error saving log to mongo, continue")
         return 1
     except NoSuchElementException:
         logger.info('--> Already following')
@@ -550,7 +562,7 @@ def follow_user(browser, login, user_name, blacklist, logger, logfolder):
         return 0
 
 
-def unfollow_user(browser, username, person, relationship_data, logger, logfolder):
+def unfollow_user(browser=None, username=None, person=None, relationship_data=None, logger=None, logfolder=None, action_logger=None):
     """Unfollows the user of the currently opened image"""
 
     try:
@@ -571,8 +583,13 @@ def unfollow_user(browser, username, person, relationship_data, logger, logfolde
             relationship_data[username]["all_following"].remove(person)
 
         update_activity('unfollows')
+        try:
+            action_logger(action='LIKE', payload={
+              "user": username,
+            })
+        except:
+            print("error saving log to mongo, continue")
         sleep(3)
-
         return 1
 
 
