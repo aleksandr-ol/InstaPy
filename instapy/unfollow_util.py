@@ -120,7 +120,8 @@ def unfollow(browser,
              white_list,
              sleep_delay,
              logger,
-             logfolder):
+             logfolder,
+             action_logger):
 
     """ Unfollows the given amount of users"""
 
@@ -307,6 +308,13 @@ def unfollow(browser,
                             sleep_counter += 1
 
                             update_activity('unfollows')
+                            try:
+                                action_logger(action='UNFOLLOW', payload={
+                                    "user": username,
+                                    "person": person
+                                })
+                            except:
+                                print("error saving log to mongo, continue")
 
                             if person in relationship_data[username]["all_following"]:
                                 relationship_data[username]["all_following"].remove(person)
@@ -465,6 +473,12 @@ def unfollow(browser,
                         pass
 
                     update_activity('unfollows')
+                    try:
+                        action_logger(action='UNFOLLOW', payload={
+                            "person": person
+                        })
+                    except:
+                        print("error saving log to mongo, continue")
 
                     if person in relationship_data[username]["all_following"]:
                         relationship_data[username]["all_following"].remove(person)
@@ -513,12 +527,6 @@ def follow_user(browser=None, login=None, user_name=None, blacklist=None, logger
                 "arguments[0].style.opacity = 1", follow_button)
             click_element(browser, follow_button) # follow_button.click()
         update_activity('follows')
-        try:
-            action_logger(action='FOLLOW', payload={
-              "user": user_name,
-            })
-        except:
-            print("error saving log to mongo, continue")
         try:
             userid = browser.execute_script(
                 "return window._sharedData.entry_data.PostPage[0].graphql.shortcode_media.owner.id")
@@ -586,6 +594,7 @@ def unfollow_user(browser=None, username=None, person=None, relationship_data=No
         try:
             action_logger(action='LIKE', payload={
               "user": username,
+              "person": person
             })
         except:
             print("error saving log to mongo, continue")

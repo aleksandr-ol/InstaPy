@@ -1,6 +1,7 @@
 version: '3'
 services:
-  web:
+  prod_web:
+    container_name: prod_instapy
     command: python docker_quickstart_server.py
     environment:
       - PYTHONUNBUFFERED=0
@@ -8,9 +9,19 @@ services:
       context: .
       dockerfile: ./docker_conf/python/Dockerfile
     depends_on:
-      - selenium
+      - prod_selenium
     volumes:
       - ./logs:/code/logs
-  selenium:
+    external_links:
+      - mongodb
+    networks:
+      - default
+      - mongo_default
+  prod_selenium:
+    container_name: prod_selenium
     image: selenium/standalone-chrome
     shm_size: 128M
+
+networks:
+  mongo_default:
+    external: true

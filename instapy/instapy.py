@@ -2315,7 +2315,8 @@ class InstaPy:
                                       self.white_list,
                                       sleep_delay,
                                       self.logger,
-                                      self.logfolder)
+                                      self.logfolder,
+                                      self.action_logger)
             self.logger.info(
                 "--> Total people unfollowed : {}\n".format(unfollowNumber))
             self.unfollowNumber += unfollowNumber

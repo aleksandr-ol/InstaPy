@@ -1,6 +1,7 @@
 version: '3'
 services:
   d_web:
+    container_name: dev_instagrambot
     build:
       context: .
       dockerfile: ./docker_conf/dev_python/Dockerfile
