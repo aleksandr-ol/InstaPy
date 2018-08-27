@@ -352,6 +352,7 @@ class InstaPy:
                           self.switch_language,
                           self.bypass_suspicious_attempt):
             message = "Wrong login data!"
+            self.action_logger(action="ERROR", payload={ "messsage": message })
             highlight_print(self.username, message, "login", "critical", self.logger)
 
             self.aborting = True

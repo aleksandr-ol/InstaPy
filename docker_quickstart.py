@@ -1,6 +1,7 @@
 # import lazarus
 
 # lazarus.default()
+import atexit
 import os
 import json
 from dotenv import load_dotenv
@@ -86,9 +87,17 @@ class Bot(InstaPy):
 
     def save_userlog(self, action="INFO", payload={}):
         user_id = self.current_user.get("_id")
+        account_id = self.current_account.get("_id")
+        if (
+            self.current_account
+            and self.current_account.get("username")
+            and not payload.get("username")
+        ):
+            payload['username'] = self.current_account.get("username")
         return self.ActionLog.insert(
             {
                 "user": user_id,
+                "account": account_id,
                 "action": action,
                 "data": payload,
                 "createdAt": datetime.datetime.utcnow(),
@@ -136,7 +145,6 @@ class Bot(InstaPy):
             # max_following=3000,
             # min_followers=400,
             # min_following=50,
-            potency_ratio=-1.21,
             delimit_by_numbers=True,
             max_followers=4590,
             max_following=5555,
@@ -189,11 +197,10 @@ class Bot(InstaPy):
             action="SESSION_END",
             payload={
                 "message": "Session ending",
-                "date": datetime.datetime.fromtimestamp(time.time()).strftime(
-                    "%H:%M:%S %d-%m-%Y"
-                ),
+                "date": datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"),
             },
         )
+        self.set_bot_status("paused")
         self.take_a_break(random.randint(5, 30) * 60)  # 30 min
         self.current_account = self.get_user_data(
             self.user_email, self.user_account)
@@ -232,17 +239,19 @@ class Bot(InstaPy):
 
         return 1
 
-    def set_bot_status(status):
+    def set_bot_status(self, status):
         return self.InstagramAccount.update(
-            {"_id": self.account["user"]}, {"$set": {"botStatus": status}}
+            {"_id": self.account["_id"]}, {"$set": {"botStatus": status}}
         )
 
     def start_bot_session(self):
         try:
+            # self.set_bot_status("launching")
             self.shoud_sleep_for_the_night(active=True)
             self.current_hashtag = self.get_current_hashtag()
             self.set_selenium_remote_session(
-                selenium_url="http://selenium:4444/wd/hub")
+                selenium_url="http://instapy_d_selenium_1:4444/wd/hub"
+            )
             super().login()
             self.set_bot_status("active")
             self.action_logger(
@@ -260,11 +269,13 @@ class Bot(InstaPy):
             if self._retry_loggin < 3:
                 self._retry_loggin += 1
                 return self.login()
+            else:
+                self.set_bot_status("stopped")
 
 
 while True:
+    print("BotManager started. Looking for stopped account to run...")
     jobs = []
-    print("MULTI -", "Starting at", datetime.datetime.now().strftime("%H:%M:%S"))
     query = {
         "$or": [
             {"botStatus": None},
@@ -276,16 +287,37 @@ while True:
     User = MongoDB.get_collection("user")
     for account in Account.find(query):
         user = User.find_one({"_id": account["user"]})
+        print("found inactive account", account["username"])
         if user and Account and __name__ == "__main__":
             try:
                 bot = Bot(account=account, user=user)
                 p = multiprocessing.Process(target=bot.start_bot_session)
                 jobs.append(p)
-                print("MULTI - Starting account: %s" % (account["username"]))
+                print(
+                    "MULTI - Starting user: %s at %s"
+                    % (
+                        account["username"],
+                        datetime.datetime.now().strftime("%H:%M:%S"),
+                    )
+                )
                 p.start()
                 time.sleep(120)
                 # no delay cause some instances of chrome to give errors and stop
             except Exception as error:
                 print(str(error))
+                bot.set_bot_status("stopped")
 
-    time.sleep(5)
+    time.sleep(10)
+
+
+def exit_handler():
+    print("Exiting..")
+    try:
+        Account = MongoDB.get_collection("instagram_account")
+        Account.update({}, {"$set": "stopped"}, {"multi": True})
+    except Exception as error:
+        print(str(error))
+        pass
+
+
+atexit.register(exit_handler)
