@@ -250,7 +250,7 @@ class Bot(InstaPy):
             self.shoud_sleep_for_the_night(active=True)
             self.current_hashtag = self.get_current_hashtag()
             self.set_selenium_remote_session(
-                selenium_url="http://instapy_d_selenium_1:4444/wd/hub"
+                selenium_url="http://selenium:4444/wd/hub"
             )
             super().login()
             self.set_bot_status("active")
@@ -281,7 +281,8 @@ while True:
             {"botStatus": None},
             {"botStatus": {"$exists": False}},
             {"botStatus": "stopped"},
-        ]
+        ],
+        "expiresOn": {"$lt": datetime.datetime.now()}
     }
     Account = MongoDB.get_collection("instagram_account")
     User = MongoDB.get_collection("user")
