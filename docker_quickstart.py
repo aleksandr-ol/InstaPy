@@ -2,7 +2,10 @@
 
 # lazarus.default()
 import os
+import json
 from dotenv import load_dotenv
+
+load_dotenv()
 
 from instapy import InstaPy
 import datetime
@@ -14,16 +17,26 @@ import env
 import time
 import random
 import pymongo
+from bson.objectid import ObjectId
+from instapy import mongodb
+import multiprocessing
 
-load_dotenv()
+MongoDB = mongodb.Database(
+    host=os.getenv("MONGODB_HOST"),
+    port=int(os.getenv("MONGODB_PORT")),
+    database=os.getenv("MONGODB_DB"),
+)
 
 
 class Bot(InstaPy):
     def __init__(self, *args, **kwards):
         self._retry_loggin = 0
         self.connect_mongodb()
-        self.user_email = kwards.get("user_email")
-        self.user_account = kwards.get("user_account")
+        self.set_collection()
+        self.account = kwards.get("account")
+        self.user = kwards.get("user")
+        self.user_email = user["email"]
+        self.user_account = account["username"]
         self.current_account = self.get_user_data(
             self.user_email, self.user_account)
         super().__init__(
@@ -38,19 +51,31 @@ class Bot(InstaPy):
             # proxy_port=443,
         )
 
+    # Reconnect to be thread-safe
     def connect_mongodb(self):
-        self.db_client = pymongo.MongoClient(
-            os.getenv("MONGODB_HOST"), int(os.getenv("MONGODB_PORT"))
+        MongoDB = mongodb.Database(
+            host=os.getenv("MONGODB_HOST"),
+            port=int(os.getenv("MONGODB_PORT")),
+            database=os.getenv("MONGODB_DB"),
         )
-        self.db = self.db_client[os.getenv("MONGODB_DB")]
-        return self.db
+        self.db_client = MongoDB
+        self.db = self.db_client.get_database()
+        pass
+
+    def set_collection(self):
+        self.User = self.db_client.get_collection("user")
+        self.InstagramAccount = self.db_client.get_collection(
+            "instagram_account")
+        self.ActionLog = self.db_client.get_collection("actionlog")
+        return True
 
     def get_user_data(self, user_email, user_account):
-        self.current_user = self.db.user.find_one({"email": user_email})
+
+        self.current_user = self.User.find_one({"email": user_email})
         if not self.current_user:
             print("User not found, exiting.")
             exit(1)
-        current_account = self.db.instagram_account.find_one(
+        current_account = self.InstagramAccount.find_one(
             {"user": self.current_user["_id"], "username": user_account}
         )
         if not current_account:
@@ -61,7 +86,7 @@ class Bot(InstaPy):
 
     def save_userlog(self, action="INFO", payload={}):
         user_id = self.current_user.get("_id")
-        return self.db.actionlog.insert(
+        return self.ActionLog.insert(
             {
                 "user": user_id,
                 "action": action,
@@ -90,13 +115,13 @@ class Bot(InstaPy):
             pointer += 1
         current_hashtag = hashtags[pointer: pointer + 1]
 
-        print("Starting with current hashtag %s", (current_hashtag[0]))
+        print("Starting with current: hashtag %s" % (current_hashtag[0]))
 
         self.set_hashtag_pointer(current_hashtag[0])
         return current_hashtag
 
     def set_hashtag_pointer(self, hashtag):
-        return self.db.instagram_account.update(
+        return self.InstagramAccount.update(
             {"user": self.current_user["_id"]}, {
                 "$set": {"hashtag_pointer": hashtag}}
         )
@@ -105,12 +130,18 @@ class Bot(InstaPy):
         account = self.current_account
         self.set_relationship_bounds(
             enabled=True,
-            # potency_ratio=1.2,
-            delimit_by_numbers=False,
-            max_followers=10000,
-            max_following=3000,
-            min_followers=400,
-            min_following=50,
+            # potency_ratio=1.21,
+            # delimit_by_numbers=True,
+            # max_followers=10000,
+            # max_following=3000,
+            # min_followers=400,
+            # min_following=50,
+            potency_ratio=-1.21,
+            delimit_by_numbers=True,
+            max_followers=4590,
+            max_following=5555,
+            min_followers=45,
+            min_following=77,
         )
         self.clarifai_check_img_for(account["clarifai_check_img_for"])
         self.set_dont_include(account["friend_list"])
@@ -201,13 +232,19 @@ class Bot(InstaPy):
 
         return 1
 
-    def login(self):
+    def set_bot_status(status):
+        return self.InstagramAccount.update(
+            {"_id": self.account["user"]}, {"$set": {"botStatus": status}}
+        )
+
+    def start_bot_session(self):
         try:
             self.shoud_sleep_for_the_night(active=True)
             self.current_hashtag = self.get_current_hashtag()
             self.set_selenium_remote_session(
                 selenium_url="http://selenium:4444/wd/hub")
             super().login()
+            self.set_bot_status("active")
             self.action_logger(
                 action="SESSION_START",
                 payload={
@@ -225,5 +262,30 @@ class Bot(InstaPy):
                 return self.login()
 
 
-bot = Bot(user_email=os.getenv("EMAIL"), user_account=os.getenv("USERNAME"))
-bot.login()
+while True:
+    jobs = []
+    print("MULTI -", "Starting at", datetime.datetime.now().strftime("%H:%M:%S"))
+    query = {
+        "$or": [
+            {"botStatus": None},
+            {"botStatus": {"$exists": False}},
+            {"botStatus": "stopped"},
+        ]
+    }
+    Account = MongoDB.get_collection("instagram_account")
+    User = MongoDB.get_collection("user")
+    for account in Account.find(query):
+        user = User.find_one({"_id": account["user"]})
+        if user and Account and __name__ == "__main__":
+            try:
+                bot = Bot(account=account, user=user)
+                p = multiprocessing.Process(target=bot.start_bot_session)
+                jobs.append(p)
+                print("MULTI - Starting account: %s" % (account["username"]))
+                p.start()
+                time.sleep(120)
+                # no delay cause some instances of chrome to give errors and stop
+            except Exception as error:
+                print(str(error))
+
+    time.sleep(5)
