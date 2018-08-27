@@ -20,6 +20,7 @@ load_dotenv()
 
 class Bot(InstaPy):
     def __init__(self, *args, **kwards):
+        self._retry_loggin = 0
         self.connect_mongodb()
         self.user_email = kwards.get("user_email")
         self.user_account = kwards.get("user_account")
@@ -201,20 +202,27 @@ class Bot(InstaPy):
         return 1
 
     def login(self):
-        self.shoud_sleep_for_the_night(active=True)
-        self.current_hashtag = self.get_current_hashtag()
-        self.set_selenium_remote_session(
-            selenium_url="http://selenium:4444/wd/hub")
-        super().login()
-        self.action_logger(
-            action="SESSION_START",
-            payload={
-                "message": "Session starting",
-                "date": datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"),
-            },
-        )
-        self.set_current_settings()
-        return self.start_routines()
+        try:
+            self.shoud_sleep_for_the_night(active=True)
+            self.current_hashtag = self.get_current_hashtag()
+            self.set_selenium_remote_session(
+                selenium_url="http://selenium:4444/wd/hub")
+            super().login()
+            self.action_logger(
+                action="SESSION_START",
+                payload={
+                    "message": "Session starting",
+                    "date": datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"),
+                },
+            )
+            self.set_current_settings()
+            return self.start_routines()
+        except Exception as error:
+            print(traceback.format_exc())
+            self.action_logger(action="ERROR", payload={"message": str(error)})
+            if self._retry_loggin < 3:
+                self._retry_loggin += 1
+                return self.login()
 
 
 bot = Bot(user_email=os.getenv("EMAIL"), user_account=os.getenv("USERNAME"))
