@@ -52,6 +52,18 @@ class Bot(InstaPy):
             # proxy_port=443,
         )
 
+    # Run before running the script
+    @staticmethod
+    def on_script_start(MongoDB):
+        # set bot stuck on active when bot crashed to make them
+        # reinitialize
+        Instagram = MongoDB.get_collection("instagram_account")
+        Instagram.update({"botStatus": "active"}, {"$set": {"botStatus": "stopped"}})
+
+    @staticmethod
+    def on_script_end():
+        pass
+
     # Reconnect to be thread-safe
     def connect_mongodb(self):
         MongoDB = mongodb.Database(
@@ -93,7 +105,7 @@ class Bot(InstaPy):
             and self.current_account.get("username")
             and not payload.get("username")
         ):
-            payload['username'] = self.current_account.get("username")
+            payload["username"] = self.current_account.get("username")
         return self.ActionLog.insert(
             {
                 "user": user_id,
@@ -244,35 +256,47 @@ class Bot(InstaPy):
             {"_id": self.account["_id"]}, {"$set": {"botStatus": status}}
         )
 
+    # def should_pause(self):
+    #   bot = self.InstagramAccount.find_one(
+    #       {"_id": self.account["_id"]}}
+    #   )
+    #   if bot["botStatus"] and bot["botStatus"] === 'paused':
+    #     pass
+
+    def pre_login(self):
+        self.shoud_sleep_for_the_night(active=True)
+        # self.set_bot_status("launching")
+        self.current_hashtag = self.get_current_hashtag()
+        self.set_selenium_remote_session(selenium_url="http://selenium:4444/wd/hub")
+
+    def post_login(self):
+        self.set_bot_status("active")
+        self.action_logger(
+            action="SESSION_START",
+            payload={
+                "message": "Session starting",
+                "date": datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"),
+            },
+        )
+
     def start_bot_session(self):
         try:
-            # self.set_bot_status("launching")
-            self.shoud_sleep_for_the_night(active=True)
-            self.current_hashtag = self.get_current_hashtag()
-            self.set_selenium_remote_session(
-                selenium_url="http://selenium:4444/wd/hub"
-            )
+            self.pre_login()
             super().login()
-            self.set_bot_status("active")
-            self.action_logger(
-                action="SESSION_START",
-                payload={
-                    "message": "Session starting",
-                    "date": datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"),
-                },
-            )
+            self.post_login()
             self.set_current_settings()
-            return self.start_routines()
+            self.start_routines()
         except Exception as error:
             print(traceback.format_exc())
             self.action_logger(action="ERROR", payload={"message": str(error)})
             if self._retry_loggin < 3:
                 self._retry_loggin += 1
-                return self.login()
+                return self.start_bot_session()
             else:
                 self.set_bot_status("stopped")
 
 
+Bot.on_script_start(MongoDB)
 while True:
     print("BotManager started. Looking for stopped account to run...")
     jobs = []
@@ -282,7 +306,7 @@ while True:
             {"botStatus": {"$exists": False}},
             {"botStatus": "stopped"},
         ],
-        "expiresOn": {"$lt": datetime.datetime.now()}
+        # "expiresOn": {"$lt": datetime.datetime.now()}
     }
     Account = MongoDB.get_collection("instagram_account")
     User = MongoDB.get_collection("user")
@@ -315,7 +339,7 @@ def exit_handler():
     print("Exiting..")
     try:
         Account = MongoDB.get_collection("instagram_account")
-        Account.update({}, {"$set": "stopped"}, {"multi": True})
+        Account.update({}, {"$set": "stopped"})
     except Exception as error:
         print(str(error))
         pass
