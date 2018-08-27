@@ -39,7 +39,7 @@ class Bot(InstaPy):
 
     def connect_mongodb(self):
         self.db_client = pymongo.MongoClient(
-            os.getenv("MONGODB_HOST"), os.getenv("MONGODB_PORT")
+            os.getenv("MONGODB_HOST"), int(os.getenv("MONGODB_PORT"))
         )
         self.db = self.db_client[os.getenv("MONGODB_DB")]
         return self.db
@@ -84,7 +84,7 @@ class Bot(InstaPy):
         if pointer != 0 and pointer == len(hashtags) - 1:
             pointer = 0
             # if rewinding take a break since we did a pretty long session to get here
-            time.sleep(60 * 60 * 2)  # 2hrs
+            self.take_a_break(random.randint(90, 120) * 60)
         else:
             pointer += 1
         current_hashtag = hashtags[pointer: pointer + 1]
@@ -104,7 +104,7 @@ class Bot(InstaPy):
         account = self.current_account
         self.set_relationship_bounds(
             enabled=True,
-            # potency_ratio=1.3,
+            # potency_ratio=1.2,
             delimit_by_numbers=False,
             max_followers=10000,
             max_following=3000,
@@ -138,7 +138,9 @@ class Bot(InstaPy):
         #     amount=random.randint(5, 10),
         # )
 
-        self.follow_by_tags(self.current_hashtag, amount=random.randint(10, 25))
+        self.follow_by_tags(self.current_hashtag,
+                            amount=random.randint(10, 25))
+
         self.unfollow_users(
             amount=random.randint(25, 50),
             InstapyFollowed=(True, "nonfollowers"),
@@ -154,13 +156,13 @@ class Bot(InstaPy):
         self.action_logger(
             action="SESSION_END",
             payload={
-                "message": "Session starting",
+                "message": "Session ending",
                 "date": datetime.datetime.fromtimestamp(time.time()).strftime(
                     "%H:%M:%S %d-%m-%Y"
                 ),
             },
         )
-        self.take_a_break(30 * 60)  # 30 min
+        self.take_a_break(random.randint(5, 30) * 60)  # 30 min
         self.current_account = self.get_user_data(
             self.user_email, self.user_account)
         return self.login()
@@ -169,7 +171,7 @@ class Bot(InstaPy):
         self.action_logger(
             action="BREAK",
             payload={
-                "message": "Taking a break for " + break_time_in_seconds + "seconds",
+                "message": "Taking a break for %s seconds" % (break_time_in_seconds),
                 "date": datetime.datetime.fromtimestamp(time.time()).strftime(
                     "%H:%M:%S %d-%m-%Y"
                 ),
@@ -177,13 +179,39 @@ class Bot(InstaPy):
         )
         return time.sleep(break_time_in_seconds)
 
+    def shoud_sleep_for_the_night(self, active=True):
+        if active:
+            dt = datetime.datetime.now()
+            if dt.hour > 0 and dt.hour < 8:
+                # start at 8 but add random on minutes
+                dt_hr = 8 - int(dt.hour)
+                dt_mt = random.randint(1, 60)
+                break_time_in_seconds = (dt_hr * dt_mt) * 60
+                # self.logger.info("[%s] Sleeping for the night for %s hour and %s minutes" % (self.current_account.username, dt_hr, dt_mt))
+                self.action_logger(
+                    action="NIGHT_BREAK",
+                    payload={
+                        "message": "Sleeping for the night for %s hour and %s minutes"
+                        % (dt_hr, dt_mt),
+                        "date": datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"),
+                    },
+                )
+                return time.sleep(break_time_in_seconds)
+
+        return 1
+
     def login(self):
+        self.shoud_sleep_for_the_night(active=True)
         self.current_hashtag = self.get_current_hashtag()
         self.set_selenium_remote_session(
             selenium_url="http://selenium:4444/wd/hub")
         super().login()
         self.action_logger(
-            action="SESSION_START", payload={"message": "Session starting"}
+            action="SESSION_START",
+            payload={
+                "message": "Session starting",
+                "date": datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"),
+            },
         )
         self.set_current_settings()
         return self.start_routines()
