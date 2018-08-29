@@ -2,15 +2,41 @@ import sys
 import os
 from dotenv import load_dotenv
 from .mongodb import Database
+from .bot_controller import controller as BotController
 from instapy import InstaPy
 import datetime
 import time
 import traceback
 import random
+import multiprocessing
 
 load_dotenv()
 os.environ['TZ'] = 'Europe/Rome'
 time.tzset()
+
+clarifai_check_img_for = [
+    "nsfw",
+    "kid",
+    "child",
+    "children",
+    "teen",
+    "food",
+    "dog",
+    "pet",
+    "cat",
+    "advertisement",
+    "adv",
+    "text",
+    "low quality",
+    "fashion",
+    "men",
+    "man",
+    "china",
+    "chinese",
+    "arab",
+    "male",
+    "man"
+]
 
 
 class Bot(InstaPy):
@@ -30,12 +56,19 @@ class Bot(InstaPy):
             # proxy_address="212.237.52.87",
             # proxy_port=443,
         )
+        self.fork_controller()
         self.set_bot_status("active")
         self.start_bot_session()
         # no delay cause some instances of chrome to give errors and stop
         # this was after process.start if you encount error after moving it here
         # print("waiting 30 second before starting to be sure chrome is up")
         time.sleep(30)
+
+    def fork_controller(self):
+        print("fork_controller")
+        process = multiprocessing.Process(
+            target=BotController, kwargs={"bot": self})
+        process.start()
 
     #  start_bot_session
     def start_bot_session(self):
@@ -55,30 +88,56 @@ class Bot(InstaPy):
             else:
                 return self.on_session_end()
 
+    def set_session_settings(self):
+        self.set_use_clarifai(
+            enabled=True, api_key=os.getenv('CLARIFAI_APIKEY'))
+        self.clarifai_check_img_for(clarifai_check_img_for)
+
+        if self.account.get("set_relationship_bounds", {}).get('enabled', False):
+            set_relationship_bounds = self.account.get(
+                "set_relationship_bounds", {"enabled": False})
+            self.set_relationship_bounds(**set_relationship_bounds)
+
+        if len(self.account.get('dont_include', [])):
+            self.set_dont_include(self.account.get("dont_include"))
+
+        if len(self.account.get('dont_like', [])):
+            self.set_dont_like(self.account.get("dont_like"))
+
+        self.set_user_interact(
+            amount=random.randint(1, 3), randomize=True, percentage=30, media="Photo"
+        )
+        return 0
+
     def start_routines(self):
         self.on_session_start()
 
         if self.account.get('hashtag_pointer', None):
             self.like_by_tags(
                 self.account.get('hashtag_pointer'),
-                amount=random.randint(15, 35),
+                amount=random.randint(10, 20),
                 interact=True,
                 media="Photo",
             )
 
-        # self.like_by_feed(amount=random.randint(5, 10), randomize=True, interact=True)
+        if self.account.get('like_by_feed', False):
+            self.like_by_feed(amount=random.randint(10, 25),
+                              randomize=True, interact=True)
 
         # Broken
-        # self.follow_user_followers(
-        #     self.account["follow_userbase"],
-        #     randomize=True,
-        #     interact=True,
-        #     amount=random.randint(5, 10),
-        # )
+        # if self.account.get('follow_user_followers', None):
+        #     self.follow_user_followers(
+        #         self.account["follow_userbase"],
+        #         randomize=True,
+        #         interact=True,
+        #         amount=random.randint(15, 30),
+        #     )
 
         if self.account.get('hashtag_pointer', None):
+            self.set_relationship_bounds(
+                enabled=True, potency_ratio=random.choice([-1.3, 1.3]), delimit_by_numbers=True, min_followers=250, max_followers=10000)
             self.follow_by_tags(self.account.get('hashtag_pointer'),
-                                amount=random.randint(10, 25))
+                                amount=random.randint(15, 20))
 
         self.unfollow_users(
             amount=random.randint(25, 50),
@@ -132,7 +191,7 @@ class Bot(InstaPy):
     def on_script_start(MongoDB):
         # set bot stuck on active when bot crashed to make them
         # reinitialize
-        Instagram = MongoDB.get_collection("instagram_account")
+        Instagram = MongoDB.get_collection("instagramAccount")
         try:
             Instagram.update_many({"botStatus": "active"}, {
                 "$set": {"botStatus": "restart"}})
@@ -159,7 +218,7 @@ class Bot(InstaPy):
     def set_db_models(self):
         self.User = self.db_client.get_collection("user")
         self.InstagramAccount = self.db_client.get_collection(
-            "instagram_account")
+            "instagramAccount")
         self.ActionLog = self.db_client.get_collection("actionlog")
         return True
 
@@ -181,29 +240,6 @@ class Bot(InstaPy):
             {"_id": self.account["_id"]}, {
                 "$set": {"hashtag_pointer": hashtag}}
         )
-
-    def set_session_settings(self):
-        if self.account.get("set_relationship_bounds", {}).get('enabled', False):
-            set_relationship_bounds = self.account.get(
-                "set_relationship_bounds", {})
-            self.set_relationship_bounds(
-                **set_relationship_bounds
-                # enabled=True,
-                # potency_ratio=-1.21,
-                # delimit_by_numbers=True,
-                # # max_followers=10000,
-                # # max_following=5555,
-                # min_followers=500,
-                # # min_following=150,
-            )
-            pass
-        self.clarifai_check_img_for(self.account["clarifai_check_img_for"])
-        self.set_dont_include(self.account["friend_list"])
-        self.set_dont_like(self.account["dont_like"])
-        self.set_user_interact(
-            amount=random.randint(1, 3), randomize=True, percentage=30, media="Photo"
-        )
-        return 0
 
     def sleep_if_night(self, active=True):
         if active:
@@ -255,6 +291,5 @@ class Bot(InstaPy):
                 "date": datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"),
             },
         )
-        print(">", updateObj)
         if status == 'paused' or status == 'stopped':
             return sys.exit(0)

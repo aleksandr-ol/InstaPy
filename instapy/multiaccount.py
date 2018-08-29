@@ -24,7 +24,7 @@ MongoDB = Database(
 
 
 def stop_all_bot():
-    Account = MongoDB.get_collection("instagram_account")
+    Account = MongoDB.get_collection("instagramAccount")
     Account.update_many({"botStatus": "active"}, {
                         "$set": {"botStatus": "restart"}})
     # if a bot is set as paused but without untild schedule for restart
@@ -43,7 +43,7 @@ def exit_handler():
 
 
 atexit.register(exit_handler)
-Account = MongoDB.get_collection("instagram_account")
+Account = MongoDB.get_collection("instagramAccount")
 User = MongoDB.get_collection("user")
 
 
