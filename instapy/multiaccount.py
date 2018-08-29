@@ -48,9 +48,9 @@ User = MongoDB.get_collection("user")
 
 
 def run():
+    Bot.on_script_start(MongoDB)
     while True:
         print("[BotsManager]: Looking for stopped account to run...")
-        Bot.on_script_start(MongoDB)
         query = {
             "$or": [
                 {"botStatus": "restart"},
@@ -65,9 +65,12 @@ def run():
             print("found inactive account", account["username"])
             if user and account:
                 try:
-                    bot = Bot(account=account)
+                    # NOT THREAD SAFE SINCE INITIALIZATION HAPPEN HERE...
+                    # TODO MOVE INITIALIZATION IN THREAD
+                    # bot = Bot(account)
+                    args = {"account": account}
                     process = multiprocessing.Process(
-                        target=bot.start_bot_session)
+                        target=Bot, kwargs=args)
                     print(
                         "MULTI - Starting user: %s at %s"
                         % (
@@ -77,9 +80,9 @@ def run():
                     )
                     process.start()
                     # process.join()
-                    bot.set_bot_status("active")
+                    # bot.set_bot_status("active")
                 except Exception as error:
                     print("[BotsManager]: Error - ", str(error))
-                    bot.set_bot_status("stopped")
+                    # bot.set_bot_status("stopped")
 
         time.sleep(10)

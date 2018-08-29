@@ -30,10 +30,12 @@ class Bot(InstaPy):
             # proxy_address="212.237.52.87",
             # proxy_port=443,
         )
+        self.set_bot_status("active")
+        self.start_bot_session()
         # no delay cause some instances of chrome to give errors and stop
         # this was after process.start if you encount error after moving it here
         # print("waiting 30 second before starting to be sure chrome is up")
-        # time.sleep(30)
+        time.sleep(30)
 
     #  start_bot_session
     def start_bot_session(self):
@@ -51,8 +53,7 @@ class Bot(InstaPy):
                 self._retry_loggin += 1
                 return self.start_bot_session()
             else:
-                # self.set_bot_status("stopped")
-                return sys.exit(1)
+                return self.on_session_end()
 
     def start_routines(self):
         self.on_session_start()
@@ -101,7 +102,6 @@ class Bot(InstaPy):
         return sys.exit(0)
 
     def pre_login(self):
-        self.set_bot_status("active")
         self.sleep_if_night(active=True)
         self.set_selenium_remote_session(
             selenium_url="http://selenium:4444/wd/hub")
@@ -135,7 +135,7 @@ class Bot(InstaPy):
         Instagram = MongoDB.get_collection("instagram_account")
         try:
             Instagram.update_many({"botStatus": "active"}, {
-                "$set": {"botStatus": "stopped"}})
+                "$set": {"botStatus": "restart"}})
         except Exception as error:
             print(error)
 
