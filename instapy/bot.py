@@ -216,7 +216,7 @@ class Bot(InstaPy):
         self.set_db_models()
 
     def set_db_models(self):
-        self.User = self.db_client.get_collection("user")
+        self.User = self.db_client.get_collection("users")
         self.InstagramAccount = self.db_client.get_collection(
             "instagramAccount")
         self.ActionLog = self.db_client.get_collection("actionlog")

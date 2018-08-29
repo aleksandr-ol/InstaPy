@@ -44,7 +44,7 @@ def exit_handler():
 
 atexit.register(exit_handler)
 Account = MongoDB.get_collection("instagramAccount")
-User = MongoDB.get_collection("user")
+User = MongoDB.get_collection("users")
 
 
 def run():
