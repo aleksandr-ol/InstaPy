@@ -2542,7 +2542,8 @@ class InstaPy:
                                             user_name,
                                             self.blacklist,
                                             self.logger,
-                                            self.logfolder)
+                                            self.logfolder,
+                                            self.action_logger)
                                     else:
                                         self.logger.info('--> Not following')
                                         sleep(1)
@@ -2855,7 +2856,8 @@ class InstaPy:
                                                 user_name,
                                                 self.blacklist,
                                                 self.logger,
-                                                self.logfolder)
+                                                self.logfolder,
+                                                self.action_logger)
                     else:
                         self.logger.info(
                             '--> User not followed: {}'.format(reason))
@@ -3015,7 +3017,8 @@ class InstaPy:
                                                     user_name,
                                                     self.blacklist,
                                                     self.logger,
-                                                    self.logfolder)
+                                                    self.logfolder,
+                                                    self.action_logger)
                         else:
                             self.logger.info('--> Not following')
                             sleep(1)

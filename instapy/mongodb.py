@@ -12,4 +12,3 @@ class Database(object):
     def get_collection(self, collection=None):
         if collection is not None:
             return self.db[collection]
-
