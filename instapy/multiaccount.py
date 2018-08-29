@@ -48,11 +48,13 @@ User = MongoDB.get_collection("users")
 
 
 def run():
+    active_bots = {}
     Bot.on_script_start(MongoDB)
     while True:
         print("[BotsManager]: Looking for stopped account to run...")
         query = {
             "$or": [
+                {"botStatus": "stopped"},
                 {"botStatus": "restart"},
                 {"botStatus": "paused", "pausedUntil": {
                     "$lte": datetime.datetime.now()}},
@@ -61,16 +63,32 @@ def run():
         }
         for account in Account.find(query):
             user = User.find_one({"_id": account["user"]})
-            account['user'] = user
-            print("found inactive account", account["username"])
             if user and account:
+                process_name = "%s_%s" % (
+                    account.get('_id'), account.get('username'))
+
+                """
+                  HANDLE CLIENT CHANGING BOT STATUS TO STOPPED:
+                  If account is set to stop and we have one running 
+                  stop it
+                """
+                if account.get('botStatus') == 'stopped' or account.get('botStatus') == 'restart':
+                    if active_bots.get(process_name, None):
+                        print("found stopped account still working: Exterminate!",
+                              account["username"])
+                        active_bots.get(process_name).terminate()
+                        active_bots.pop(process_name)  # dictionary
+
+                    if account.get('botStatus') == 'stopped':
+                        continue  # skip account since is stopped
+
+                account['user'] = user
+                print("found inactive account", account.get('username'))
                 try:
-                    # NOT THREAD SAFE SINCE INITIALIZATION HAPPEN HERE...
-                    # TODO MOVE INITIALIZATION IN THREAD
-                    # bot = Bot(account)
                     args = {"account": account}
                     process = multiprocessing.Process(
                         target=Bot, kwargs=args)
+                    process.name = process_name
                     print(
                         "MULTI - Starting user: %s at %s"
                         % (
@@ -78,6 +96,7 @@ def run():
                             datetime.datetime.now().strftime("%H:%M:%S"),
                         )
                     )
+                    active_bots.setdefault(process.name, process)
                     process.start()
                     # process.join()
                     # bot.set_bot_status("active")

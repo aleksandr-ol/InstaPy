@@ -2,7 +2,7 @@ import sys
 import os
 from dotenv import load_dotenv
 from .mongodb import Database
-from .bot_controller import controller as BotController
+# from .bot_controller import controller as BotController
 from instapy import InstaPy
 import datetime
 import time
@@ -41,7 +41,10 @@ clarifai_check_img_for = [
 
 class Bot(InstaPy):
     def __init__(self, *args, **kwards):
-        self.process = None
+        # no delay cause some instances of chrome to give errors and stop
+        # this was after process.start if you encount error after moving it here
+        # print("waiting 30 second before starting to be sure chrome is up")
+        # time.sleep(30)
         self._retry_loggin = 0
         self.connect_mongodb()
         self.account = kwards.get("account")
@@ -56,19 +59,15 @@ class Bot(InstaPy):
             # proxy_address="212.237.52.87",
             # proxy_port=443,
         )
-        self.fork_controller()
+        # self.fork_controller()
         self.set_bot_status("active")
         self.start_bot_session()
-        # no delay cause some instances of chrome to give errors and stop
-        # this was after process.start if you encount error after moving it here
-        # print("waiting 30 second before starting to be sure chrome is up")
-        time.sleep(30)
 
-    def fork_controller(self):
-        print("fork_controller")
-        process = multiprocessing.Process(
-            target=BotController, kwargs={"bot": self})
-        process.start()
+    # def fork_controller(self):
+    #     print("fork_controller")
+    #     process = multiprocessing.Process(
+    #         target=BotController, kwargs={"bot": self})
+    #     process.start()
 
     #  start_bot_session
     def start_bot_session(self):
