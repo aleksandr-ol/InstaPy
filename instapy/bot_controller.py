@@ -16,7 +16,6 @@ def controller(bot=None):
         Account = MongoDB.get_collection('instagramAccount')
         fetched = Account.find_one({"_id": account.get('_id')})
         if not fetched:
-            bot.end()
             print("[BotController]: account deleted. stopping activity.")
             return sys.exit(0)
 

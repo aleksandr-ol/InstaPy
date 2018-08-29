@@ -68,12 +68,9 @@ class Bot(InstaPy):
         print("fork_controller")
         process = multiprocessing.Process(
             target=BotController, kwargs={"bot": self})
-        process.name = 'python:bot_controller:' + self.account["username"]
         process.start()
-        process.join()
-        return time.sleep(60)  # debug
-    #  start_bot_session
 
+    #  start_bot_session
     def start_bot_session(self):
         try:
             self.pre_login()
@@ -108,7 +105,7 @@ class Bot(InstaPy):
             self.set_dont_like(self.account.get("dont_like"))
 
         self.set_user_interact(
-            amount=random.randint(5, 10), randomize=True, percentage=30, media="Photo"
+            amount=random.randint(1, 3), randomize=True, percentage=30, media="Photo"
         )
         return 0
 
@@ -118,7 +115,7 @@ class Bot(InstaPy):
         if self.account.get('hashtag_pointer', None):
             self.like_by_tags(
                 self.account.get('hashtag_pointer'),
-                amount=random.randint(15, 35),
+                amount=random.randint(10, 20),
                 interact=True,
                 media="Photo",
             )
@@ -128,17 +125,19 @@ class Bot(InstaPy):
                               randomize=True, interact=True)
 
         # Broken
-        if self.account.get('follow_user_followers', None):
-            self.follow_user_followers(
-                self.account["follow_userbase"],
-                randomize=True,
-                interact=True,
-                amount=random.randint(5, 10),
-            )
+        # if self.account.get('follow_user_followers', None):
+        #     self.follow_user_followers(
+        #         self.account["follow_userbase"],
+        #         randomize=True,
+        #         interact=True,
+        #         amount=random.randint(15, 30),
+        #     )
 
         if self.account.get('hashtag_pointer', None):
+            self.set_relationship_bounds(
+                enabled=True, potency_ratio=random.choice([-1.3, 1.3]), delimit_by_numbers=True, min_followers=250, max_followers=10000)
             self.follow_by_tags(self.account.get('hashtag_pointer'),
-                                amount=random.randint(10, 25))
+                                amount=random.randint(15, 20))
 
         self.unfollow_users(
             amount=random.randint(25, 50),
