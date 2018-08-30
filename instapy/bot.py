@@ -35,7 +35,7 @@ clarifai_check_img_for = [
     "chinese",
     "arab",
     "male",
-    "man"
+    "man",
 ]
 
 
@@ -93,19 +93,24 @@ class Bot(InstaPy):
         self.clarifai_check_img_for(clarifai_check_img_for)
 
         if self.account.get("set_relationship_bounds", {}).get('enabled', False):
+            print('setting set_relationship_bounds',
+                  self.account.get("set_relationship_bounds", {}))
             set_relationship_bounds = self.account.get(
                 "set_relationship_bounds", {"enabled": False})
             self.set_relationship_bounds(**set_relationship_bounds)
 
         if len(self.account.get('dont_include', [])):
+            print('setting dont_include', self.account.get('dont_include', []))
             self.set_dont_include(self.account.get("dont_include"))
 
         if len(self.account.get('dont_like', [])):
+            print('setting dont_like', self.account.get('dont_like', []))
             self.set_dont_like(self.account.get("dont_like"))
 
-        self.set_user_interact(
-            amount=random.randint(1, 3), randomize=True, percentage=30, media="Photo"
-        )
+        if self.account.get('set_user_interact', None):
+            self.set_user_interact(
+                amount=random.randint(1, 3), randomize=True, percentage=30, media="Photo"
+            )
         return 0
 
     def start_routines(self):
@@ -113,14 +118,14 @@ class Bot(InstaPy):
 
         if self.account.get('hashtag_pointer', None):
             self.like_by_tags(
-                self.account.get('hashtag_pointer'),
-                amount=random.randint(10, 20),
+                [self.account.get('hashtag_pointer')],
+                amount=random.randint(5, 10),
                 interact=True,
                 media="Photo",
             )
 
         if self.account.get('like_by_feed', False):
-            self.like_by_feed(amount=random.randint(10, 25),
+            self.like_by_feed(amount=random.randint(5, 10),
                               randomize=True, interact=True)
 
         # Broken
@@ -134,15 +139,15 @@ class Bot(InstaPy):
 
         if self.account.get('hashtag_pointer', None):
             self.set_relationship_bounds(
-                enabled=True, potency_ratio=random.choice([-1.3, 1.3]), delimit_by_numbers=True, min_followers=250, max_followers=10000)
+                enabled=True, potency_ratio=random.choice([-1.3, 1.3]))
             self.follow_by_tags(self.account.get('hashtag_pointer'),
-                                amount=random.randint(15, 20))
+                                amount=random.randint(5, 10))
 
         self.unfollow_users(
             amount=random.randint(25, 50),
             InstapyFollowed=(True, "nonfollowers"),
             style="RANDOM",
-            unfollow_after=24 * 60 * 60,
+            unfollow_after=48 * 60 * 60,
             sleep_delay=120,
         )
         self.on_session_end()
