@@ -115,10 +115,9 @@ class Bot(InstaPy):
 
     def start_routines(self):
         self.on_session_start()
-
         if self.account.get('hashtag_pointer', None):
             self.like_by_tags(
-                [self.account.get('hashtag_pointer')],
+                [self.account.get('hashtag_pointer')],  # must be array!
                 amount=random.randint(5, 10),
                 interact=True,
                 media="Photo",
@@ -140,7 +139,7 @@ class Bot(InstaPy):
         if self.account.get('hashtag_pointer', None):
             self.set_relationship_bounds(
                 enabled=True, potency_ratio=random.choice([-1.3, 1.3]))
-            self.follow_by_tags(self.account.get('hashtag_pointer'),
+            self.follow_by_tags([self.account.get('hashtag_pointer')],  # must be array!
                                 amount=random.randint(5, 10))
 
         self.unfollow_users(
