@@ -118,13 +118,13 @@ class Bot(InstaPy):
         if self.account.get('hashtag_pointer', None):
             self.like_by_tags(
                 [self.account.get('hashtag_pointer')],  # must be array!
-                amount=random.randint(5, 10),
+                amount=random.randint(15, 25),
                 interact=True,
                 media="Photo",
             )
 
         if self.account.get('like_by_feed', False):
-            self.like_by_feed(amount=random.randint(5, 10),
+            self.like_by_feed(amount=random.randint(15, 20),
                               randomize=True, interact=True)
 
         # Broken
@@ -140,7 +140,7 @@ class Bot(InstaPy):
             self.set_relationship_bounds(
                 enabled=True, potency_ratio=random.choice([-1.3, 1.3]))
             self.follow_by_tags([self.account.get('hashtag_pointer')],  # must be array!
-                                amount=random.randint(5, 10))
+                                amount=random.randint(15, 25))
 
         self.unfollow_users(
             amount=random.randint(25, 50),
