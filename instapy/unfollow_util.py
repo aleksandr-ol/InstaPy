@@ -474,12 +474,14 @@ def unfollow(browser,
                                                    button,
                                                     relationship_data,
                                                      logger,
+                                                     logfolder,
+                                                     action_logger)
                     try:
                         action_logger(action='UNFOLLOW', payload={
                             "person": person
                         })
                     except:
-                        print("error saving log to mongo, continue")                                  logfolder)
+                        print("error saving log to mongo, continue")                                  
                     if unfollow_state == True:
                         unfollowNum += 1
                         # reset jump counter after a successful unfollow
@@ -1094,7 +1096,7 @@ def follow_restriction(operation, username, limit, logger):
 
 
 
-def unfollow_user(browser, track, username, person, person_id, button, relationship_data, logger, logfolder):
+def unfollow_user(browser, track, username, person, person_id, button, relationship_data, logger, logfolder, action_logger):
     """ Unfollow user from either `profile' or a 'post' page or from a 'dialog' box """
     # check action availability
     if quota_supervisor("unfollows") == "jump":
@@ -1179,7 +1181,13 @@ def unfollow_user(browser, track, username, person, person_id, button, relations
     logger.info("--> Unfollowed '{}'!".format(person))
     update_activity('unfollows')
     post_unfollow_cleanup("successful", username, person, relationship_data, logger, logfolder)
-
+    try:
+        action_logger(action='UNFOLLOW', payload={
+            "user": username,
+            "person": person
+        })
+    except:
+        print("error saving log to mongo, continue")
     return True, "success"
 
 

@@ -2240,7 +2240,8 @@ class InstaPy:
                                                                 None,
                                                                  self.relationship_data,
                                                                   self.logger,
-                                                                  self.logfolder)
+                                                                  self.logfolder,
+                                                                  self.action_logger)
                         if unfollow_state == True:
                             simulated_unfollow += 1
 
@@ -2393,7 +2394,8 @@ class InstaPy:
                                                                 None,
                                                                  self.relationship_data,
                                                                   self.logger,
-                                                                  self.logfolder)
+                                                                  self.logfolder,
+                                                                  self.action_logger)
                         if unfollow_state == True:
                             simulated_unfollow += 1
 

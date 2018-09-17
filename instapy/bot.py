@@ -159,8 +159,8 @@ class Bot(InstaPy):
     def on_session_end(self):
         self.end()
         break_time_in_sec = random.randint(5, 30) * 60  # 5-30 min
-        self.set_bot_status("paused", break_time_in_sec)
         self.update_hashtag_pointer()
+        self.set_bot_status("paused", break_time_in_sec)
         return sys.exit(0)
 
     def pre_login(self):
@@ -185,7 +185,11 @@ class Bot(InstaPy):
                 self.account.get('hashtag_pointer')) + 1
             next_hashtag = hashtags[next_index]
 
-        return self.InstagramAccount.update({"_id": self.account.get('_id', None)}, {"$set": {"hashtag_pointer": next_hashtag}})
+        try:
+            return self.InstagramAccount.update({"_id": self.account.get('_id', None)}, {
+                "$set": {"hashtag_pointer": next_hashtag}})
+        except Exception as error:
+            print("update hashtag error", error)
 
     # Run BEFORE running the script
     # For everything to do before starting ALL bot
