@@ -329,7 +329,8 @@ def unfollow(browser,
                                                             None,
                                                              relationship_data,
                                                               logger,
-                                                              logfolder)
+                                                              logfolder,
+                                                              action_logger)
                     try:
                         action_logger(action='UNFOLLOW', payload={
                             "user": username,
