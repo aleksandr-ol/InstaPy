@@ -38,6 +38,11 @@ clarifai_check_img_for = [
     "man",
 ]
 
+LIKE_NUMBER = 35*3, 70*3
+LIKE_FEED_NUMBER = 35, 70
+FOLLOW_NUMBER = 35*4, 70*4
+UNFOLLOW_NUMBER = 50, 100
+
 
 class Bot(InstaPy):
     def __init__(self, *args, **kwards):
@@ -88,9 +93,9 @@ class Bot(InstaPy):
                 return self.on_session_end()
 
     def set_session_settings(self):
-        self.set_use_clarifai(
-            enabled=True, api_key=os.getenv('CLARIFAI_APIKEY'))
-        self.clarifai_check_img_for(clarifai_check_img_for)
+        # self.set_use_clarifai(
+        #     enabled=True, api_key=os.getenv('CLARIFAI_APIKEY'))
+        # self.clarifai_check_img_for(clarifai_check_img_for)
 
         if self.account.get("set_relationship_bounds", {}).get('enabled', False):
             print('setting set_relationship_bounds',
@@ -115,16 +120,17 @@ class Bot(InstaPy):
 
     def start_routines(self):
         self.on_session_start()
+
         if self.account.get('hashtag_pointer', None):
             self.like_by_tags(
                 [self.account.get('hashtag_pointer')],  # must be array!
-                amount=random.randint(15, 25),
+                amount=random.randint(*LIKE_NUMBER),
                 interact=True,
                 media="Photo",
             )
 
         if self.account.get('like_by_feed', False):
-            self.like_by_feed(amount=random.randint(15, 20),
+            self.like_by_feed(amount=random.randint(*LIKE_FEED_NUMBER),
                               randomize=True, interact=True)
 
         # Broken
@@ -140,10 +146,10 @@ class Bot(InstaPy):
             self.set_relationship_bounds(
                 enabled=True, potency_ratio=random.choice([-1.3, 1.3]))
             self.follow_by_tags([self.account.get('hashtag_pointer')],  # must be array!
-                                amount=random.randint(15, 25))
+                                amount=random.randint(*FOLLOW_NUMBER))
 
         self.unfollow_users(
-            amount=random.randint(25, 50),
+            amount=random.randint(*UNFOLLOW_NUMBER),
             InstapyFollowed=(True, "nonfollowers"),
             style="RANDOM",
             unfollow_after=48 * 60 * 60,
@@ -154,6 +160,8 @@ class Bot(InstaPy):
 
     # refresh data on session start
     def on_session_start(self):
+        if (len(self.account.get('hashtags', [])) and self.account.get('hashtag_pointer', None) is None):
+            self.account['hashtag_pointer'] = self.account["hashtags"][0]
         return True
 
     def on_session_end(self):
@@ -178,12 +186,13 @@ class Bot(InstaPy):
     def update_hashtag_pointer(self):
         hashtags = self.account.get("hashtags", [])
         next_index = 0
-        if len(hashtags) is 0:
+        if len(hashtags):
+            next_hashtag = hashtags[next_index]
+        elif len(hashtags) is 0:
             next_hashtag = None
         elif self.account.get('hashtag_pointer') is not None and hashtags.index(self.account.get('hashtag_pointer')) is not len(hashtags) - 1:
             next_index = hashtags.index(
                 self.account.get('hashtag_pointer')) + 1
-            next_hashtag = hashtags[next_index]
 
         try:
             return self.InstagramAccount.update({"_id": self.account.get('_id', None)}, {
@@ -242,12 +251,6 @@ class Bot(InstaPy):
             }
         )
 
-    def set_next_hashtag_pointer(self, hashtag):
-        return self.InstagramAccount.update(
-            {"_id": self.account["_id"]}, {
-                "$set": {"hashtag_pointer": hashtag}}
-        )
-
     def sleep_if_night(self, active=True):
         if active:
             dt = datetime.datetime.now()
@@ -277,7 +280,7 @@ class Bot(InstaPy):
         """
         def calculate_break_time(sec=300):
             now = datetime.datetime.now()
-            date = now + datetime.timedelta(seconds=sec)
+            date = now + datetime.timedelta(seconds=int(sec))
             return now, sec, date
 
         updateObj = {"botStatus": status}
