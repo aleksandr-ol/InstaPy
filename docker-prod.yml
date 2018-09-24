@@ -20,7 +20,7 @@ services:
   bot:
     container_name: prod_instapy
     restart: always
-    command: python docker_quickstart_server.py
+    command: python docker_quickstart.py
     environment:
       - PYTHONUNBUFFERED=0
     build:
