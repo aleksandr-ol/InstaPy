@@ -186,9 +186,8 @@ class Bot(InstaPy):
     def update_hashtag_pointer(self):
         hashtags = self.account.get("hashtags", [])
         next_index = 0
-        if len(hashtags):
-            next_hashtag = hashtags[next_index]
-        elif len(hashtags) is 0:
+        next_hashtag = hashtags[next_index]
+        if len(hashtags) is 0:
             next_hashtag = None
         elif self.account.get('hashtag_pointer') is not None and hashtags.index(self.account.get('hashtag_pointer')) is not len(hashtags) - 1:
             next_index = hashtags.index(
