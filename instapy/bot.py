@@ -61,6 +61,7 @@ class Bot(InstaPy):
             bypass_suspicious_attempt=True,
             multi_logs=True,
             action_logger=self.save_userlog,
+            nogui=os.getenv('PRODUCTION', False)
             # proxy_address="212.237.52.87",
             # proxy_port=443,
         )
