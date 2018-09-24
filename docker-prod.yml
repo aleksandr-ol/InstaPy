@@ -29,11 +29,19 @@ services:
       dockerfile: ./docker_conf/python/Dockerfile
     depends_on:
       - prod_selenium
-      # - mongodb
     volumes:
       - ./logs:/code/logs
+    networks:
+      - default
+      - mongo_default
+    external_links:
+      - mongodb
   prod_selenium:
     container_name: prod_selenium
     restart: always
     image: selenium/standalone-chrome
     shm_size: 512M
+
+networks:
+  mongo_default:
+    external: true
