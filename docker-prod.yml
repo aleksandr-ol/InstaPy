@@ -33,7 +33,7 @@ services:
       - ./logs:/code/logs
     networks:
       - default
-      - mongo_default
+      - mongodb_default
     external_links:
       - mongodb
   prod_selenium:
@@ -43,5 +43,5 @@ services:
     shm_size: 512M
 
 networks:
-  mongo_default:
+  mongodb_default:
     external: true
