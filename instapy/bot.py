@@ -66,7 +66,6 @@ class Bot(InstaPy):
         )
         # self.fork_controller()
         self.set_bot_status("active")
-        self.set_bot_current_session_hashtag()
         self.start_bot_session()
 
     #  start_bot_session
