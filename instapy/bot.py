@@ -38,10 +38,10 @@ clarifai_check_img_for = [
     "man",
 ]
 
-LIKE_NUMBER = 35*3, 70*3
+LIKE_NUMBER = 35*4, 70*4
 LIKE_FEED_NUMBER = 35, 70
-FOLLOW_NUMBER = 35*4, 70*4
-UNFOLLOW_NUMBER = 50, 100
+FOLLOW_NUMBER = 35*5, 70*5
+UNFOLLOW_NUMBER = 50*3, 100*3
 
 
 class Bot(InstaPy):
