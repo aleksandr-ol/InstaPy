@@ -41,7 +41,7 @@ clarifai_check_img_for = [
 LIKE_NUMBER = 35*4, 70*4
 LIKE_FEED_NUMBER = 35, 70
 FOLLOW_NUMBER = 35*5, 70*5
-UNFOLLOW_NUMBER = 50*3, 100*3
+UNFOLLOW_NUMBER = 50*4, 100*4
 
 
 class Bot(InstaPy):
@@ -66,13 +66,8 @@ class Bot(InstaPy):
         )
         # self.fork_controller()
         self.set_bot_status("active")
+        self.set_bot_current_session_hashtag()
         self.start_bot_session()
-
-    # def fork_controller(self):
-    #     print("fork_controller")
-    #     process = multiprocessing.Process(
-    #         target=BotController, kwargs={"bot": self})
-    #     process.start()
 
     #  start_bot_session
     def start_bot_session(self):
@@ -185,13 +180,14 @@ class Bot(InstaPy):
 
     def update_hashtag_pointer(self):
         hashtags = self.account.get("hashtags", [])
-        next_index = 0
-        next_hashtag = hashtags[next_index]
+        current_pointer = self.account.get('hashtag_pointer')
         if len(hashtags) is 0:
             next_hashtag = None
-        elif self.account.get('hashtag_pointer') is not None and hashtags.index(self.account.get('hashtag_pointer')) is not len(hashtags) - 1:
-            next_index = hashtags.index(
-                self.account.get('hashtag_pointer')) + 1
+        elif current_pointer and (current_pointer in hashtags) and hashtags.index(current_pointer) is not len(hashtags) - 1:
+            next_index = hashtags.index(current_pointer) + 1
+        else:
+            next_index = 0
+            next_hashtag = hashtags[next_index]
 
         try:
             return self.InstagramAccount.update({"_id": self.account.get('_id', None)}, {
