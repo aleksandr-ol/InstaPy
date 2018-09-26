@@ -76,6 +76,7 @@ class Bot(InstaPy):
             self.post_login()
             self.set_session_settings()
             self.start_routines()
+            self.on_session_end()
         except Exception as error:
             print("[Bot]: Error - ", traceback.format_exc())
             self.action_logger(action="ERROR", payload={"message": str(
@@ -149,8 +150,6 @@ class Bot(InstaPy):
             unfollow_after=48 * 60 * 60,
             sleep_delay=120,
         )
-        self.on_session_end()
-        return True
 
     # refresh data on session start
     def on_session_start(self):
@@ -159,6 +158,7 @@ class Bot(InstaPy):
         return True
 
     def on_session_end(self):
+        print("On session end")
         self.end()
         break_time_in_sec = random.randint(5, 30) * 60  # 5-30 min
         self.update_hashtag_pointer()
@@ -180,14 +180,16 @@ class Bot(InstaPy):
     def update_hashtag_pointer(self):
         hashtags = self.account.get("hashtags", [])
         current_pointer = self.account.get('hashtag_pointer')
+        next_hashtag = None
         if len(hashtags) is 0:
             next_hashtag = None
         elif current_pointer and (current_pointer in hashtags) and hashtags.index(current_pointer) is not len(hashtags) - 1:
             next_index = hashtags.index(current_pointer) + 1
+            next_hashtag = hashtags[next_index]
         else:
             next_index = 0
             next_hashtag = hashtags[next_index]
-
+        print("next_hashtag", next_hashtag)
         try:
             return self.InstagramAccount.update({"_id": self.account.get('_id', None)}, {
                 "$set": {"hashtag_pointer": next_hashtag}})

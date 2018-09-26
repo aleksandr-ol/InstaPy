@@ -8,8 +8,11 @@ class Database(object):
             "MONGODB_USER", "")
         password = os.getenv(
             "MONGODB_PWD", "")
-        constr = "mongodb://%s:%s@%s:%s/%s" % (username,
-                                               password, host, int(port), database)
+        if username and password:
+            constr = "mongodb://%s:%s@%s:%s/%s" % (username,
+                                                   password, host, int(port), database)
+        else:
+            constr = "mongodb://%s:%s/%s" % (host, int(port), database)
         try:
             self.db_client = pymongo.MongoClient(constr)
             self.db = self.db_client[database]
