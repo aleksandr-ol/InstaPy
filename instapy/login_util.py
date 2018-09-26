@@ -13,8 +13,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import WebDriverException
 
 
-
-
 def bypass_suspicious_login(browser):
     """Bypass suspicious loggin attempt verification. This should be only enabled
     when there isn't available cookie for the username, otherwise it will and
@@ -68,7 +66,7 @@ def bypass_suspicious_login(browser):
 
             except:
                 print("Unable to locate email or phone button, maybe "
-                        "bypass_suspicious_login=True isn't needed anymore.")
+                      "bypass_suspicious_login=True isn't needed anymore.")
                 return False
 
     send_security_code_button = browser.find_element_by_xpath(
@@ -100,7 +98,7 @@ def bypass_suspicious_login(browser):
         update_activity()
 
     submit_security_code_button = browser.find_element_by_xpath(
-                                            "//button[text()='Submit']")
+        "//button[text()='Submit']")
 
     (ActionChains(browser)
         .move_to_element(submit_security_code_button)
@@ -126,7 +124,6 @@ def bypass_suspicious_login(browser):
         pass
 
 
-
 def login_user(browser,
                username,
                password,
@@ -147,7 +144,7 @@ def login_user(browser,
         googledotcom = "https://www.google.com"
         web_address_navigator(browser, googledotcom)
         for cookie in pickle.load(open('{0}{1}_cookie.pkl'
-                                       .format(logfolder,username), 'rb')):
+                                       .format(logfolder, username), 'rb')):
             browser.add_cookie(cookie)
             cookie_loaded = True
     except (WebDriverException, OSError, IOError):
@@ -155,7 +152,7 @@ def login_user(browser,
 
     # include time.sleep(1) to prevent getting stuck on google.com
     time.sleep(1)
-    
+
     web_address_navigator(browser, ig_homepage)
 
     # Cookie has been loaded, user should be logged in. Ensurue this is true
@@ -176,7 +173,7 @@ def login_user(browser,
     # Might cause problems if the OS language is english
     if switch_language:
         language_element_ENG = browser.find_element_by_xpath(
-          "//select[@class='hztqj']/option[text()='English']")
+            "//select[@class='hztqj']/option[text()='English']")
         click_element(browser, language_element_ENG)
 
     # Check if the first div is 'Create an Account' or 'Log In'
@@ -236,7 +233,7 @@ def login_user(browser,
         update_activity()
 
     login_button = browser.find_element_by_xpath(
-        "//form/span/button[text()='Log in']")
+        "//button[text()='Log in']")
 
     (ActionChains(browser)
         .move_to_element(login_button)
@@ -258,11 +255,10 @@ def login_user(browser,
     if len(nav) == 2:
         # create cookie for username
         pickle.dump(browser.get_cookies(),
-                    open('{0}{1}_cookie.pkl'.format(logfolder,username), 'wb'))
+                    open('{0}{1}_cookie.pkl'.format(logfolder, username), 'wb'))
         return True
     else:
         return False
-
 
 
 def dismiss_get_app_offer(browser, logger):
@@ -271,11 +267,9 @@ def dismiss_get_app_offer(browser, logger):
     dismiss_elem = "//*[contains(text(), 'Not Now')]"
 
     # wait a bit and see if the 'Get App' offer rises up
-    offer_loaded = explicit_wait(browser, "VOEL", [offer_elem, "XPath"], logger, 5, False)
+    offer_loaded = explicit_wait(
+        browser, "VOEL", [offer_elem, "XPath"], logger, 5, False)
 
     if offer_loaded:
         dismiss_elem = browser.find_element_by_xpath(dismiss_elem)
         click_element(browser, dismiss_elem)
-
-
-
