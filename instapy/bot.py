@@ -38,10 +38,10 @@ clarifai_check_img_for = [
     "man",
 ]
 
-LIKE_NUMBER = 35, 70
-LIKE_FEED_NUMBER = 35, 70
-FOLLOW_NUMBER = 35, 70
-UNFOLLOW_NUMBER = 100, 200
+LIKE_NUMBER = 25, 50
+LIKE_FEED_NUMBER = 25, 50
+FOLLOW_NUMBER = 25, 50
+UNFOLLOW_NUMBER = 50, 100
 
 
 class Bot(InstaPy):
@@ -115,36 +115,37 @@ class Bot(InstaPy):
 
     def start_routines(self):
         self.on_session_start()
+        action_ratio_multiplier = self.account.get(
+            'action_ratio_multiplier', 1)
 
         if self.account.get('hashtag_pointer', None):
             self.like_by_tags(
                 [self.account.get('hashtag_pointer')],  # must be array!
-                amount=random.randint(*LIKE_NUMBER),
+                amount=random.randint(*LIKE_NUMBER)*action_ratio_multiplier,
                 interact=True,
                 media="Photo",
             )
 
         if self.account.get('like_by_feed', False):
-            self.like_by_feed(amount=random.randint(*LIKE_FEED_NUMBER),
+            self.like_by_feed(amount=random.randint(*LIKE_FEED_NUMBER)*action_ratio_multiplier,
                               randomize=True, interact=True)
 
-        # Broken
-        # if self.account.get('follow_user_followers', None):
-        #     self.follow_user_followers(
-        #         self.account["follow_userbase"],
-        #         randomize=True,
-        #         interact=True,
-        #         amount=random.randint(15, 30),
-        #     )
+        if self.account.get('follow_user_followers') and len(self.account.get('follow_user_followers')) > 0:
+            self.follow_user_followers(
+                self.account.get('follow_user_followers', []),
+                randomize=True,
+                interact=True,
+                amount=random.randint(5, 15)*action_ratio_multiplier,
+            )
 
         if self.account.get('hashtag_pointer', None):
             self.set_relationship_bounds(
                 enabled=True, potency_ratio=random.choice([-1.3, 1.3]))
             self.follow_by_tags([self.account.get('hashtag_pointer')],  # must be array!
-                                amount=random.randint(*FOLLOW_NUMBER))
+                                amount=random.randint(*FOLLOW_NUMBER)*action_ratio_multiplier)
 
         self.unfollow_users(
-            amount=random.randint(*UNFOLLOW_NUMBER),
+            amount=random.randint(*UNFOLLOW_NUMBER)*action_ratio_multiplier,
             InstapyFollowed=(True, "nonfollowers"),
             style="RANDOM",
             unfollow_after=48 * 60 * 60,
