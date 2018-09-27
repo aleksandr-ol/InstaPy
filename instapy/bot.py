@@ -78,6 +78,7 @@ class Bot(InstaPy):
         self.connect_mongodb()
         self.account = kwards.get("account")
         proxy = random.choice(Proxies)
+        print("using proxy", proxy[0], proxy[1])
         super().__init__(
             username=self.account["username"],
             password=self.account["password"],
