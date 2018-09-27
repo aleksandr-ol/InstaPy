@@ -43,6 +43,30 @@ LIKE_FEED_NUMBER = 25, 50
 FOLLOW_NUMBER = 25, 50
 UNFOLLOW_NUMBER = 50, 100
 
+Proxies = [
+    ("212.237.52.87", "443"	),
+    ("151.80.140.233", "54566"),
+    ("212.237.63.84", "8888"),
+    ("80.211.141.177", "8888"),
+    ("80.211.141.30", "8888"),
+    ("80.211.5.160", "8888"),
+    ("212.237.30.237", "8888"),
+    ("80.211.148.100", "8888"),
+    ("80.211.182.207", "8888"),
+    ("212.237.26.124", "8888"),
+    ("80.211.184.53", "8888"),
+    ("80.211.228.238", "8888"),
+    ("80.211.6.201", "8888"),
+    ("80.211.148.20", "8888"),
+    ("212.237.23.60", "2000"),
+    ("212.237.51.54", "8888"),
+    ("80.211.157.69", "8888"),
+    ("80.211.0.244", "8888"),
+    ("212.237.37.152", "8888"),
+    ("217.61.15.26", "3128"),
+    ("80.211.4.187", "8080"),
+]
+
 
 class Bot(InstaPy):
     def __init__(self, *args, **kwards):
@@ -53,6 +77,7 @@ class Bot(InstaPy):
         self._retry_loggin = 0
         self.connect_mongodb()
         self.account = kwards.get("account")
+        proxy = random.choice(Proxies)
         super().__init__(
             username=self.account["username"],
             password=self.account["password"],
@@ -61,8 +86,8 @@ class Bot(InstaPy):
             bypass_suspicious_attempt=True,
             multi_logs=True,
             action_logger=self.save_userlog,
-            proxy_address="212.237.52.87",
-            proxy_port=443,
+            proxy_address=proxy[0],
+            proxy_port=proxy[1],
         )
         # self.fork_controller()
         self.set_bot_status("active")
