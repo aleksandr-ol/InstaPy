@@ -87,6 +87,8 @@ Table of Contents
   * [cron](#cron)
   * [Schedule](#schedule)
 * [Extra Information](#extra-information)  
+  * [Using one of the templates](#using-one-of-the-templates)
+  * [How not to be banned](#how-not-to-be-banned)
   * [Simulation](#simulation)
   * [Disable Image Loading](#disable-image-loading)
   * [Using Multiple Chromedrivers](#using-multiple-chromedrivers)
@@ -138,33 +140,36 @@ Basic setup is a good way to test the tool. At project root folder open `quickst
 
 ```python
 from instapy import InstaPy
+from instapy.util import smart_run
 
+
+
+# login credentials
 insta_username = ''
 insta_password = ''
 
-# if you want to run this script on a server,
-# simply add nogui=True to the InstaPy() constructor
-session = InstaPy(username=insta_username, password=insta_password)
-session.login()
+# get an InstaPy session!
+# set headless_browser=True to run InstaPy in the background
+session = InstaPy(username=insta_username,
+                  password=insta_password,
+                  headless_browser=False)
 
-# set up all the settings
-session.set_relationship_bounds(enabled=True,
-				 potency_ratio=-1.21,
-				  delimit_by_numbers=True,
-				   max_followers=4590,
-				    max_following=5555,
-				     min_followers=45,
-				      min_following=77)
-session.set_do_comment(True, percentage=10)
-session.set_comments(['aMEIzing!', 'So much fun!!', 'Nicey!'])
-session.set_dont_include(['friend1', 'friend2', 'friend3'])
-session.set_dont_like(['pizza', 'girl'])
 
-# do the actual liking
-session.like_by_tags(['natgeo', 'world'], amount=100)
-
-# end the bot session
-session.end()
+with smart_run(session):
+    """ Activity flow """
+    # settings
+    session.set_relationship_bounds(enabled=True,
+                                      delimit_by_numbers=True,
+                                       max_followers=4590,
+                                        min_followers=45,
+                                        min_following=77)
+    
+    session.set_dont_include(["friend1", "friend2", "friend3"])
+    session.set_dont_like(["pizza", "#store"])
+    
+    
+    # actions
+    session.like_by_tags(["natgeo"], amount=10)
 ```
 
 Execute it:
@@ -1501,9 +1506,18 @@ while True:
 
 ## Extra Information
 
+### Using one of the templates
 
-#### How not to be banned?
-Built-in delays prevent your account from getting banned. (Just make sure you don't like 1000s of post/day)
+If you're interested in what other users setup looks like, feel free to check out the `quickstart_templates` folder which includes several working setups with different features.
+
+In order to use them, just copy the desired file and put it next to the `quickstart.py` file in the, what is called root, directory.
+
+Finally simply adjust the username and any tags or firend lists before executing it.
+That's it.
+
+### How not to be banned
+- Built-in delays prevent your account from getting banned. (Just make sure you don't like 1000s of post/day)
+- Use the Quota Supervisor feature to set some fixed limits for the bot for maximum safety.
 
 
 ### Chrome Browser
@@ -1549,8 +1563,8 @@ chromedriver_windows
 If you want to change the location/path of either the DB or the chromedriver, simply head into the `instapy/settings.py` file and change the following lines. 
 Set these in instapy/settings.py if you're locating the library in the /usr/lib/pythonX.X/ directory.
 ```
-#   Settings.database_location = '/path/to/instapy.db'
-#   Settings.chromedriver_location = '/path/to/chromedriver'
+Settings.database_location = '/path/to/instapy.db'
+Settings.chromedriver_location = '/path/to/chromedriver'
 ```
 
 ---
