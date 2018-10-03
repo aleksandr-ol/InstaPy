@@ -11,8 +11,6 @@ import random
 import multiprocessing
 
 load_dotenv()
-os.environ['TZ'] = 'Europe/Rome'
-time.tzset()
 
 clarifai_check_img_for = [
     "nsfw",
@@ -82,8 +80,8 @@ class Bot(InstaPy):
         self._retry_loggin = 0
         self.connect_mongodb()
         self.account = kwards.get("account")
-        proxy = random.choice(Proxies)
-        print("using proxy", proxy[0], proxy[1])
+        self.setup_worker()
+        print("using proxy", self.proxy[0], self.proxy[1])
         super().__init__(
             username=self.account["username"],
             password=self.account["password"],
@@ -92,12 +90,17 @@ class Bot(InstaPy):
             bypass_suspicious_attempt=True,
             multi_logs=True,
             action_logger=self.save_userlog,
-            proxy_address=proxy[0],
-            proxy_port=proxy[1],
+            proxy_address=self.proxy[0],
+            proxy_port=self.proxy[1],
         )
         # self.fork_controller()
         self.set_bot_status("active")
         self.start_bot_session()
+
+    def setup_worker(self):
+        os.environ['TZ'] = 'Europe/Rome'
+        time.tzset()
+        self.proxy = random.choice(Proxies)
 
     #  start_bot_session
     def start_bot_session(self):
@@ -124,18 +127,18 @@ class Bot(InstaPy):
         # self.clarifai_check_img_for(clarifai_check_img_for)
 
         if self.account.get("set_relationship_bounds", {}).get('enabled', False):
-            print('setting set_relationship_bounds',
-                  self.account.get("set_relationship_bounds", {}))
+            # print('setting set_relationship_bounds',
+            #       self.account.get("set_relationship_bounds", {}))
             set_relationship_bounds = self.account.get(
                 "set_relationship_bounds", {"enabled": False})
             self.set_relationship_bounds(**set_relationship_bounds)
 
         if len(self.account.get('dont_include', [])):
-            print('setting dont_include', self.account.get('dont_include', []))
+            # print('setting dont_include', self.account.get('dont_include', []))
             self.set_dont_include(self.account.get("dont_include"))
 
         if len(self.account.get('dont_like', [])):
-            print('setting dont_like', self.account.get('dont_like', []))
+            # print('setting dont_like', self.account.get('dont_like', []))
             self.set_dont_like(self.account.get("dont_like"))
 
         if self.account.get('set_user_interact', None):

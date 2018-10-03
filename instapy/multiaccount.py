@@ -72,7 +72,7 @@ def run():
                   If account is set to stop and we have one running 
                   stop it
                 """
-                if account.get('botStatus') == 'stopped' or account.get('botStatus') == 'restart':
+                if account.get('botStatus') == 'stopped' or account.get('botStatus') == 'restart' or account.get('botStatus') == 'paused':
                     if active_bots.get(process_name, None):
                         print("found stopped account still working: Exterminate!",
                               account["username"])
@@ -103,5 +103,4 @@ def run():
                 except Exception as error:
                     print("[BotsManager]: Error - ", str(error))
                     # bot.set_bot_status("stopped")
-
-        time.sleep(10)
+        time.sleep(random.randint(10, 20))
