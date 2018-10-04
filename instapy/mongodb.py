@@ -3,7 +3,10 @@ import os
 
 
 class Database(object):
-    def __init__(self, host="localhost", port=27017, database="my_databse"):
+    def __init__(self, host="localhost", port=27017, database="instapy"):
+        host = os.getenv("MONGODB_HOST", "localhost"),
+        port = int(os.getenv("MONGODB_PORT", 27017)),
+        database = os.getenv("MONGODB_DB", "instapy"),
         username = os.getenv(
             "MONGODB_USER", "")
         password = os.getenv(

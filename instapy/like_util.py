@@ -17,6 +17,10 @@ from .quota_supervisor import quota_supervisor
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import NoSuchElementException
 
+from .mongodb import Database
+
+MongoDB = Database()
+
 
 
 
